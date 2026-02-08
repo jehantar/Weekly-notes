@@ -38,6 +38,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# supabase
+supabase/.temp/
+
 # internal project files
 /tasks/
 SPEC.md
