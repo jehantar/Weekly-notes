@@ -27,7 +27,7 @@ export default function Loading() {
             key={`hdr-${d}`}
             className="border-b border-r border-gray-300 bg-gray-50 p-2"
           >
-            <div className="h-4 w-16 bg-gray-200 animate-pulse rounded" />
+            <div className="h-4 w-24 bg-gray-200 animate-pulse rounded" />
           </div>
         ))}
 

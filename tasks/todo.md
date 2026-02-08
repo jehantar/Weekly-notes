@@ -63,8 +63,8 @@
 - [x] Empty states for all cells
 
 ## Remaining To-Do
-- [ ] Configure Supabase project and run migrations
-- [ ] Test end-to-end with real Supabase instance
-- [ ] Add loading skeletons
+- [x] Configure Supabase project and run migrations
+- [x] Test end-to-end with real Supabase instance
+- [x] Add loading skeletons
 - [ ] Handle edge cases (invalid URLs, session expiry)
 - [ ] Visual polish pass (verify against template.jpeg)

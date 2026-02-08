@@ -10,11 +10,11 @@ export function formatWeekStart(date: Date): string {
   return format(date, "yyyy-MM-dd");
 }
 
-/** Format a day header like "Mon 2/3" */
+/** Format a day header like "Monday - 2/3" */
 export function formatDayHeader(monday: Date, dayOfWeek: number): string {
-  const dayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri"];
+  const dayLabels = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
   const date = addDays(monday, dayOfWeek - 1);
-  return `${dayLabels[dayOfWeek - 1]} ${format(date, "M/d")}`;
+  return `${dayLabels[dayOfWeek - 1]} - ${format(date, "M/d")}`;
 }
 
 /** Get week label like "Week of 2/3" */
