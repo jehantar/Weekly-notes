@@ -81,7 +81,10 @@ export function WeekProvider({
         .select()
         .single();
 
-      if (error || !data) return null;
+      if (error || !data) {
+        toast.error("Failed to save meeting");
+        return null;
+      }
       setMeetings((prev) => [...prev, data]);
       return data;
     },
@@ -119,7 +122,13 @@ export function WeekProvider({
         );
       }
 
-      await supabase.from("meetings").update({ title }).eq("id", id);
+      const { error } = await supabase.from("meetings").update({ title }).eq("id", id);
+      if (error) {
+        setMeetings((prev) =>
+          prev.map((m) => (m.id === id ? { ...m, title: oldTitle ?? title } : m))
+        );
+        toast.error("Failed to save meeting");
+      }
     },
     [meetings, supabase]
   );
@@ -143,7 +152,11 @@ export function WeekProvider({
       );
 
       const timeout = setTimeout(async () => {
-        await supabase.from("meetings").delete().eq("id", id);
+        const { error } = await supabase.from("meetings").delete().eq("id", id);
+        if (error) {
+          setMeetings((prev) => [...prev, meeting]);
+          toast.error("Failed to delete meeting");
+        }
       }, UNDO_TIMEOUT);
 
       toast("Meeting deleted", {
@@ -197,7 +210,10 @@ export function WeekProvider({
         .select()
         .single();
 
-      if (error || !data) return null;
+      if (error || !data) {
+        toast.error("Failed to save action item");
+        return null;
+      }
       setActionItems((prev) => [...prev, data]);
       return data;
     },
@@ -206,12 +222,21 @@ export function WeekProvider({
 
   const updateActionItem = useCallback(
     async (id: string, updates: Partial<ActionItem>) => {
-      setActionItems((prev) =>
-        prev.map((ai) => (ai.id === id ? { ...ai, ...updates } : ai))
+      const prev = actionItems.find((ai) => ai.id === id);
+      setActionItems((items) =>
+        items.map((ai) => (ai.id === id ? { ...ai, ...updates } : ai))
       );
-      await supabase.from("action_items").update(updates).eq("id", id);
+      const { error } = await supabase.from("action_items").update(updates).eq("id", id);
+      if (error) {
+        if (prev) {
+          setActionItems((items) =>
+            items.map((ai) => (ai.id === id ? prev : ai))
+          );
+        }
+        toast.error("Failed to save action item");
+      }
     },
-    [supabase]
+    [actionItems, supabase]
   );
 
   const deleteActionItem = useCallback(
@@ -222,7 +247,11 @@ export function WeekProvider({
       setActionItems((prev) => prev.filter((ai) => ai.id !== id));
 
       const timeout = setTimeout(async () => {
-        await supabase.from("action_items").delete().eq("id", id);
+        const { error } = await supabase.from("action_items").delete().eq("id", id);
+        if (error) {
+          setActionItems((prev) => [...prev, item]);
+          toast.error("Failed to delete action item");
+        }
       }, UNDO_TIMEOUT);
 
       toast("Action item deleted", {
@@ -247,25 +276,40 @@ export function WeekProvider({
       setActionItems((prev) =>
         prev.map((ai) => (ai.id === id ? { ...ai, is_done: newDone } : ai))
       );
-      await supabase
+      const { error } = await supabase
         .from("action_items")
         .update({ is_done: newDone })
         .eq("id", id);
+      if (error) {
+        setActionItems((prev) =>
+          prev.map((ai) => (ai.id === id ? { ...ai, is_done: !newDone } : ai))
+        );
+        toast.error("Failed to update action item");
+      }
     },
     [actionItems, supabase]
   );
 
   const setPriority = useCallback(
     async (id: string, priority: number) => {
-      setActionItems((prev) =>
-        prev.map((ai) => (ai.id === id ? { ...ai, priority } : ai))
+      const prev = actionItems.find((ai) => ai.id === id);
+      setActionItems((items) =>
+        items.map((ai) => (ai.id === id ? { ...ai, priority } : ai))
       );
-      await supabase
+      const { error } = await supabase
         .from("action_items")
         .update({ priority })
         .eq("id", id);
+      if (error) {
+        if (prev) {
+          setActionItems((items) =>
+            items.map((ai) => (ai.id === id ? { ...ai, priority: prev.priority } : ai))
+          );
+        }
+        toast.error("Failed to update priority");
+      }
     },
-    [supabase]
+    [actionItems, supabase]
   );
 
   // --- Notes ---
@@ -278,15 +322,24 @@ export function WeekProvider({
       );
 
       if (existing) {
+        const oldContent = existing.content;
         setNotes((prev) =>
           prev.map((n) =>
             n.id === existing.id ? { ...n, content } : n
           )
         );
-        await supabase
+        const { error } = await supabase
           .from("notes")
           .update({ content })
           .eq("id", existing.id);
+        if (error) {
+          setNotes((prev) =>
+            prev.map((n) =>
+              n.id === existing.id ? { ...n, content: oldContent } : n
+            )
+          );
+          toast.error("Failed to save note");
+        }
       } else {
         const { data, error } = await supabase
           .from("notes")
@@ -298,7 +351,9 @@ export function WeekProvider({
           .select()
           .single();
 
-        if (!error && data) {
+        if (error || !data) {
+          toast.error("Failed to save note");
+        } else {
           setNotes((prev) => [...prev, data]);
         }
       }
