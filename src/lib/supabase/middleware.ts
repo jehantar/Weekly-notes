@@ -33,14 +33,27 @@ export async function updateSession(request: NextRequest) {
     // Network failure or Supabase down — treat as unauthenticated
   }
 
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith("/login") &&
-    !request.nextUrl.pathname.startsWith("/auth")
-  ) {
+  const isAuthRoute =
+    request.nextUrl.pathname.startsWith("/login") ||
+    request.nextUrl.pathname.startsWith("/auth");
+
+  if (!user && !isAuthRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
+  }
+
+  // Email allowlist: block users not in ALLOWED_EMAILS
+  const allowedEmails = process.env.ALLOWED_EMAILS;
+  if (user && allowedEmails && !isAuthRoute) {
+    const allowed = allowedEmails.split(",").map((e) => e.trim().toLowerCase());
+    if (!allowed.includes(user.email?.toLowerCase() ?? "")) {
+      await supabase.auth.signOut();
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      url.searchParams.set("error", "unauthorized");
+      return NextResponse.redirect(url);
+    }
   }
 
   return supabaseResponse;
