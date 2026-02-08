@@ -81,10 +81,16 @@ export default async function WeekPage({
     };
   }
 
+  const granolaEnabled = !!process.env.GRANOLA_API_KEY;
+
   return (
     <SupabaseProvider>
       <WeekProvider initialData={initialData}>
-        <WeekClient weekStart={weekStart} weekExists={!!week} />
+        <WeekClient
+          weekStart={weekStart}
+          weekExists={!!week}
+          granolaEnabled={granolaEnabled}
+        />
       </WeekProvider>
     </SupabaseProvider>
   );

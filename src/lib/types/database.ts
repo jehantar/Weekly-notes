@@ -40,6 +40,8 @@ export interface Database {
           day_of_week: number;
           title: string;
           sort_order: number;
+          granola_note_id: string | null;
+          granola_summary: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -49,6 +51,8 @@ export interface Database {
           day_of_week: number;
           title: string;
           sort_order?: number;
+          granola_note_id?: string | null;
+          granola_summary?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -58,6 +62,8 @@ export interface Database {
           day_of_week?: number;
           title?: string;
           sort_order?: number;
+          granola_note_id?: string | null;
+          granola_summary?: string | null;
           created_at?: string;
           updated_at?: string;
         };

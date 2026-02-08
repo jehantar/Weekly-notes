@@ -25,6 +25,7 @@ type WeekContextType = WeekData & {
   addMeeting: (dayOfWeek: number, title: string) => Promise<Meeting | null>;
   updateMeeting: (id: string, title: string) => Promise<void>;
   deleteMeeting: (id: string) => void;
+  refreshMeetings: () => Promise<void>;
   // Action Items
   addActionItem: (dayOfWeek: number, content: string) => Promise<ActionItem | null>;
   updateActionItem: (id: string, updates: Partial<ActionItem>) => Promise<void>;
@@ -60,6 +61,19 @@ export function WeekProvider({
     setActionItems(data.actionItems);
     setNotes(data.notes);
   }, []);
+
+  const refreshMeetings = useCallback(async () => {
+    if (!weekId) return;
+    const { data } = await supabase
+      .from("meetings")
+      .select("*")
+      .eq("week_id", weekId)
+      .order("day_of_week")
+      .order("sort_order");
+    if (data) {
+      setMeetings(data as Meeting[]);
+    }
+  }, [weekId, supabase]);
 
   // --- Meetings ---
 
@@ -372,6 +386,7 @@ export function WeekProvider({
         addMeeting,
         updateMeeting,
         deleteMeeting,
+        refreshMeetings,
         addActionItem,
         updateActionItem,
         deleteActionItem,

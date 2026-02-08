@@ -1,0 +1,106 @@
+import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import {
+  fetchNotesForRange,
+  fetchNoteDetail,
+  titlesMatch,
+} from "@/lib/granola";
+import type { GranolaNoteListItem } from "@/lib/granola";
+import type { Meeting } from "@/lib/types/database";
+
+export async function POST(request: Request) {
+  const apiKey = process.env.GRANOLA_API_KEY;
+  if (!apiKey) {
+    return NextResponse.json(
+      { error: "Granola integration not configured" },
+      { status: 501 }
+    );
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { weekStart, weekId } = await request.json();
+  if (!weekStart || !weekId) {
+    return NextResponse.json(
+      { error: "weekStart and weekId are required" },
+      { status: 400 }
+    );
+  }
+
+  // Compute date range: Monday 00:00 to Saturday 00:00 (covers Mon-Fri)
+  const monday = new Date(`${weekStart}T00:00:00Z`);
+  const saturday = new Date(monday);
+  saturday.setUTCDate(saturday.getUTCDate() + 5);
+  const afterDate = monday.toISOString();
+  const beforeDate = saturday.toISOString();
+
+  // Fetch Granola notes and meetings in parallel
+  const [granolaNotes, meetingsRes] = await Promise.all([
+    fetchNotesForRange(apiKey, afterDate, beforeDate),
+    supabase
+      .from("meetings")
+      .select("*")
+      .eq("week_id", weekId),
+  ]);
+
+  const meetings = (meetingsRes.data ?? []) as Meeting[];
+  if (meetings.length === 0 || granolaNotes.length === 0) {
+    return NextResponse.json({ matched: 0 });
+  }
+
+  // Match Granola notes to meetings
+  const consumed = new Set<string>();
+  const matches: { meeting: Meeting; granolaNoteId: string }[] = [];
+
+  for (const meeting of meetings) {
+    // Find best matching Granola note
+    let bestMatch: GranolaNoteListItem | null = null;
+
+    for (const note of granolaNotes) {
+      if (consumed.has(note.id)) continue;
+      if (!titlesMatch(meeting.title, note.title)) continue;
+
+      // Prefer same-day match
+      const noteDate = new Date(note.created_at);
+      const meetingDate = new Date(monday);
+      meetingDate.setUTCDate(
+        meetingDate.getUTCDate() + meeting.day_of_week - 1
+      );
+
+      const sameDay =
+        noteDate.getUTCFullYear() === meetingDate.getUTCFullYear() &&
+        noteDate.getUTCMonth() === meetingDate.getUTCMonth() &&
+        noteDate.getUTCDate() === meetingDate.getUTCDate();
+
+      if (sameDay || !bestMatch) {
+        bestMatch = note;
+        if (sameDay) break; // Exact day match, stop looking
+      }
+    }
+
+    if (bestMatch) {
+      consumed.add(bestMatch.id);
+      matches.push({ meeting, granolaNoteId: bestMatch.id });
+    }
+  }
+
+  // Fetch details and update meetings
+  for (const { meeting, granolaNoteId } of matches) {
+    const detail = await fetchNoteDetail(apiKey, granolaNoteId);
+    await supabase
+      .from("meetings")
+      .update({
+        granola_note_id: granolaNoteId,
+        granola_summary: detail.summary_text ?? null,
+      })
+      .eq("id", meeting.id);
+  }
+
+  return NextResponse.json({ matched: matches.length });
+}

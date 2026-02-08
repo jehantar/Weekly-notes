@@ -26,6 +26,23 @@ export function MeetingItem({ meeting }: { meeting: Meeting }) {
           placeholder="Meeting title..."
           renderView={(v) => <MarkdownInline content={v} />}
         />
+        {meeting.granola_note_id && (
+          <div className="mt-0.5 ml-0.5">
+            {meeting.granola_summary && (
+              <p className="text-xs text-gray-500 line-clamp-2">
+                {meeting.granola_summary}
+              </p>
+            )}
+            <a
+              href={`https://app.granola.ai/notes/${meeting.granola_note_id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-blue-500 hover:text-blue-700 hover:underline"
+            >
+              View in Granola
+            </a>
+          </div>
+        )}
       </div>
       <button
         onClick={() => deleteMeeting(meeting.id)}
