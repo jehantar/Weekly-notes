@@ -135,6 +135,51 @@ export interface Database {
         };
         Relationships: [];
       };
+      granola_tokens: {
+        Row: {
+          id: string;
+          user_id: string;
+          access_token: string;
+          refresh_token: string | null;
+          token_type: string;
+          expires_at: string | null;
+          scope: string | null;
+          client_id: string | null;
+          client_secret: string | null;
+          code_verifier: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          access_token: string;
+          refresh_token?: string | null;
+          token_type?: string;
+          expires_at?: string | null;
+          scope?: string | null;
+          client_id?: string | null;
+          client_secret?: string | null;
+          code_verifier?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          access_token?: string;
+          refresh_token?: string | null;
+          token_type?: string;
+          expires_at?: string | null;
+          scope?: string | null;
+          client_id?: string | null;
+          client_secret?: string | null;
+          code_verifier?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -163,3 +208,4 @@ export type Week = Database["public"]["Tables"]["weeks"]["Row"];
 export type Meeting = Database["public"]["Tables"]["meetings"]["Row"];
 export type ActionItem = Database["public"]["Tables"]["action_items"]["Row"];
 export type Note = Database["public"]["Tables"]["notes"]["Row"];
+export type GranolaToken = Database["public"]["Tables"]["granola_tokens"]["Row"];
