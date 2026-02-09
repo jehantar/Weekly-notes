@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createGranolaClient } from "@/lib/granola-mcp";
 import { getGranolaAccessToken } from "@/lib/granola-oauth";
 
-export async function GET() {
+export async function GET(request: Request) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -19,6 +19,20 @@ export async function GET() {
 
   const mcpClient = await createGranolaClient(accessToken);
   try {
+    const url = new URL(request.url);
+    const action = url.searchParams.get("action");
+
+    if (action === "list") {
+      // Call list_meetings for this week and return raw response
+      const result = await mcpClient.callTool({
+        name: "list_meetings",
+        arguments: {
+          time_range: "this_week",
+        },
+      });
+      return NextResponse.json({ raw: result });
+    }
+
     const { tools } = await mcpClient.listTools();
     return NextResponse.json({
       tools: tools.map((t) => ({
