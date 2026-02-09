@@ -67,28 +67,27 @@ export function GranolaSyncButton({ weekStart }: { weekStart: string }) {
     }
   };
 
-  // Still loading status
-  if (connected === null) return null;
+  const isLoading = connected === null;
+  const label = isLoading
+    ? "Granola..."
+    : !connected
+      ? connecting
+        ? "Connecting..."
+        : "Connect Granola"
+      : syncing
+        ? "Syncing..."
+        : "Sync Granola";
 
-  if (!connected) {
-    return (
-      <button
-        onClick={handleConnect}
-        disabled={connecting}
-        className="text-sm px-3 py-1 rounded border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {connecting ? "Connecting..." : "Connect Granola"}
-      </button>
-    );
-  }
+  const handleClick = !connected ? handleConnect : handleSync;
+  const isDisabled = isLoading || connecting || syncing || (connected && !weekId);
 
   return (
     <button
-      onClick={handleSync}
-      disabled={syncing || !weekId}
+      onClick={handleClick}
+      disabled={!!isDisabled}
       className="text-sm px-3 py-1 rounded border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
     >
-      {syncing ? "Syncing..." : "Sync Granola"}
+      {label}
     </button>
   );
 }
