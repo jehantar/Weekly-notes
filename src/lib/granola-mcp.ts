@@ -78,23 +78,25 @@ export async function fetchNotesForRange(
   });
 
   const text = extractText(result);
+  return parseMeetingsList(text);
+}
 
-  try {
-    const parsed = JSON.parse(text);
-    // Handle both array and { meetings: [...] } shapes
-    const meetings = (
-      Array.isArray(parsed) ? parsed : parsed.meetings ?? parsed.notes ?? []
-    ) as Array<Record<string, unknown>>;
-    return meetings.map((m) => ({
-      id: m.id as string,
-      title: (m.title ?? "") as string,
-      created_at: (m.created_at ?? m.start_time ?? m.date ?? "") as string,
-    }));
-  } catch {
-    // Response might be markdown/natural language — can't parse as structured data
-    console.error("list_meetings returned non-JSON:", text.slice(0, 200));
-    return [];
+/**
+ * Parse the XML-like response from list_meetings.
+ * Format: <meeting id="..." title="..." date="...">
+ */
+function parseMeetingsList(text: string): GranolaNoteListItem[] {
+  const meetings: GranolaNoteListItem[] = [];
+  const regex = /<meeting\s+id="([^"]+)"\s+title="([^"]+)"\s+date="([^"]+)"/g;
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    meetings.push({
+      id: match[1],
+      title: match[2],
+      created_at: match[3],
+    });
   }
+  return meetings;
 }
 
 export async function fetchNoteDetail(
@@ -108,30 +110,26 @@ export async function fetchNoteDetail(
 
   const text = extractText(result);
 
-  try {
-    const parsed = JSON.parse(text);
-    // Could be { meetings: [{ ... }] } or [{ ... }] or { ... }
-    const meeting = Array.isArray(parsed)
-      ? parsed[0]
-      : parsed.meetings?.[0] ?? parsed;
+  // Extract title from XML if present
+  const titleMatch = text.match(/<meeting[^>]+title="([^"]+)"/);
+  const dateMatch = text.match(/<meeting[^>]+date="([^"]+)"/);
 
-    return {
-      id: meeting?.id ?? noteId,
-      title: meeting?.title ?? "",
-      summary_text: meeting?.summary_text ?? meeting?.summary ?? meeting?.notes ?? text,
-      created_at: meeting?.created_at ?? meeting?.start_time ?? "",
-      calendar_event: meeting?.calendar_event ?? null,
-    };
-  } catch {
-    // If the response is plain markdown rather than JSON, use it as summary
-    return {
-      id: noteId,
-      title: "",
-      summary_text: text,
-      created_at: "",
-      calendar_event: null,
-    };
-  }
+  // Extract summary/notes content — look for common XML tags or use full text
+  const summaryMatch =
+    text.match(/<notes>([\s\S]*?)<\/notes>/) ??
+    text.match(/<summary>([\s\S]*?)<\/summary>/) ??
+    text.match(/<content>([\s\S]*?)<\/content>/);
+
+  // Use the full text as summary if no structured content found
+  const summaryText = summaryMatch?.[1]?.trim() ?? text;
+
+  return {
+    id: noteId,
+    title: titleMatch?.[1] ?? "",
+    summary_text: summaryText,
+    created_at: dateMatch?.[1] ?? "",
+    calendar_event: null,
+  };
 }
 
 // --- Matching ---
