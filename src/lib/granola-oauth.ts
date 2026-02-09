@@ -48,32 +48,28 @@ export async function initiateGranolaAuth(
 ): Promise<string> {
   const { authServerUrl, metadata } = await discoverAuthServer();
 
-  // Load or register client
-  let clientInfo = await loadClientInfo(supabase, userId);
-
-  if (!clientInfo) {
-    const registered = await registerClient(authServerUrl, {
-      metadata,
-      clientMetadata: {
-        ...CLIENT_METADATA,
-        redirect_uris: [redirectUri],
-      },
-    });
-    // Save client registration
-    await supabase.from("granola_tokens").upsert(
-      {
-        user_id: userId,
-        client_id: registered.client_id,
-        client_secret: registered.client_secret ?? null,
-        access_token: "", // placeholder until we get real tokens
-      },
-      { onConflict: "user_id" }
-    );
-    clientInfo = {
+  // Always register a fresh client to ensure redirect_uri matches
+  const registered = await registerClient(authServerUrl, {
+    metadata,
+    clientMetadata: {
+      ...CLIENT_METADATA,
+      redirect_uris: [redirectUri],
+    },
+  });
+  // Save client registration
+  await supabase.from("granola_tokens").upsert(
+    {
+      user_id: userId,
       client_id: registered.client_id,
-      client_secret: registered.client_secret,
-    };
-  }
+      client_secret: registered.client_secret ?? null,
+      access_token: "", // placeholder until we get real tokens
+    },
+    { onConflict: "user_id" }
+  );
+  const clientInfo = {
+    client_id: registered.client_id,
+    client_secret: registered.client_secret,
+  };
 
   const { authorizationUrl, codeVerifier } = await startAuthorization(
     authServerUrl,
