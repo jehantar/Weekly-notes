@@ -69,25 +69,32 @@ export async function fetchNotesForRange(
   beforeDate: string
 ): Promise<GranolaNoteListItem[]> {
   const result = await client.callTool({
-    name: "search_meeting_notes",
+    name: "list_meetings",
     arguments: {
-      created_after: afterDate,
-      created_before: beforeDate,
+      time_range: "custom",
+      custom_start: afterDate,
+      custom_end: beforeDate,
     },
   });
 
   const text = extractText(result);
-  const parsed = JSON.parse(text);
 
-  // Handle both array and { notes: [...] } shapes
-  const notes = (Array.isArray(parsed) ? parsed : parsed.notes ?? []) as Array<
-    Record<string, unknown>
-  >;
-  return notes.map((n) => ({
-    id: n.id as string,
-    title: n.title as string,
-    created_at: n.created_at as string,
-  }));
+  try {
+    const parsed = JSON.parse(text);
+    // Handle both array and { meetings: [...] } shapes
+    const meetings = (
+      Array.isArray(parsed) ? parsed : parsed.meetings ?? parsed.notes ?? []
+    ) as Array<Record<string, unknown>>;
+    return meetings.map((m) => ({
+      id: m.id as string,
+      title: (m.title ?? "") as string,
+      created_at: (m.created_at ?? m.start_time ?? m.date ?? "") as string,
+    }));
+  } catch {
+    // Response might be markdown/natural language — can't parse as structured data
+    console.error("list_meetings returned non-JSON:", text.slice(0, 200));
+    return [];
+  }
 }
 
 export async function fetchNoteDetail(
@@ -95,20 +102,25 @@ export async function fetchNoteDetail(
   noteId: string
 ): Promise<GranolaNoteDetail> {
   const result = await client.callTool({
-    name: "fetch_meeting_note",
-    arguments: { note_id: noteId },
+    name: "get_meetings",
+    arguments: { meeting_ids: [noteId] },
   });
 
   const text = extractText(result);
 
   try {
     const parsed = JSON.parse(text);
+    // Could be { meetings: [{ ... }] } or [{ ... }] or { ... }
+    const meeting = Array.isArray(parsed)
+      ? parsed[0]
+      : parsed.meetings?.[0] ?? parsed;
+
     return {
-      id: parsed.id ?? noteId,
-      title: parsed.title ?? "",
-      summary_text: parsed.summary_text ?? parsed.summary ?? text,
-      created_at: parsed.created_at ?? "",
-      calendar_event: parsed.calendar_event ?? null,
+      id: meeting?.id ?? noteId,
+      title: meeting?.title ?? "",
+      summary_text: meeting?.summary_text ?? meeting?.summary ?? meeting?.notes ?? text,
+      created_at: meeting?.created_at ?? meeting?.start_time ?? "",
+      calendar_event: meeting?.calendar_event ?? null,
     };
   } catch {
     // If the response is plain markdown rather than JSON, use it as summary
