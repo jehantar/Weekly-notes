@@ -23,9 +23,11 @@ export async function POST() {
     );
     return NextResponse.json({ authorizationUrl });
   } catch (err) {
-    console.error("Granola OAuth initiation failed:", err);
+    const message = err instanceof Error ? err.message : String(err);
+    const stack = err instanceof Error ? err.stack : undefined;
+    console.error("Granola OAuth initiation failed:", message, stack);
     return NextResponse.json(
-      { error: "Failed to initiate Granola connection" },
+      { error: `Failed to initiate Granola connection: ${message}` },
       { status: 500 }
     );
   }
