@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { parseWeekStart, formatWeekStart, getMonday } from "@/lib/utils/dates";
@@ -81,16 +82,12 @@ export default async function WeekPage({
     };
   }
 
-  const granolaEnabled = !!process.env.GRANOLA_API_KEY;
-
   return (
     <SupabaseProvider>
       <WeekProvider initialData={initialData}>
-        <WeekClient
-          weekStart={weekStart}
-          weekExists={!!week}
-          granolaEnabled={granolaEnabled}
-        />
+        <Suspense>
+          <WeekClient weekStart={weekStart} weekExists={!!week} />
+        </Suspense>
       </WeekProvider>
     </SupabaseProvider>
   );
