@@ -83,7 +83,7 @@ declare module "@modelcontextprotocol/sdk/client/auth" {
       state?: string;
       resource?: URL;
     }
-  ): { authorizationUrl: URL; codeVerifier: string };
+  ): Promise<{ authorizationUrl: URL; codeVerifier: string }>;
 
   export function exchangeAuthorization(
     authorizationServerUrl: URL,

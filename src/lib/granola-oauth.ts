@@ -75,7 +75,7 @@ export async function initiateGranolaAuth(
     };
   }
 
-  const { authorizationUrl, codeVerifier } = startAuthorization(
+  const { authorizationUrl, codeVerifier } = await startAuthorization(
     authServerUrl,
     {
       metadata,
