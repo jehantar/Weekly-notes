@@ -142,9 +142,35 @@ function normalize(s: string): string {
     .replace(/\s+/g, " ");
 }
 
+/** Dice coefficient: ratio of shared bigrams between two strings (0-1) */
+function similarity(a: string, b: string): number {
+  if (a === b) return 1;
+  if (a.length < 2 || b.length < 2) return 0;
+
+  const bigrams = (s: string) => {
+    const set = new Map<string, number>();
+    for (let i = 0; i < s.length - 1; i++) {
+      const bigram = s.slice(i, i + 2);
+      set.set(bigram, (set.get(bigram) ?? 0) + 1);
+    }
+    return set;
+  };
+
+  const aBigrams = bigrams(a);
+  const bBigrams = bigrams(b);
+  let intersect = 0;
+  for (const [bigram, count] of aBigrams) {
+    intersect += Math.min(count, bBigrams.get(bigram) ?? 0);
+  }
+  return (2 * intersect) / (a.length - 1 + (b.length - 1));
+}
+
+const SIMILARITY_THRESHOLD = 0.7;
+
 export function titlesMatch(a: string, b: string): boolean {
   const na = normalize(a);
   const nb = normalize(b);
   if (!na || !nb) return false;
-  return na === nb || na.includes(nb) || nb.includes(na);
+  if (na === nb || na.includes(nb) || nb.includes(na)) return true;
+  return similarity(na, nb) >= SIMILARITY_THRESHOLD;
 }
