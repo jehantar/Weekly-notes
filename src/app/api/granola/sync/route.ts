@@ -35,7 +35,17 @@ export async function POST(request: Request) {
     );
   }
 
-  const mcpClient = await createGranolaClient(accessToken);
+  let mcpClient;
+  try {
+    mcpClient = await createGranolaClient(accessToken);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("Granola MCP connection failed:", message);
+    return NextResponse.json(
+      { error: `Failed to connect to Granola: ${message}` },
+      { status: 502 }
+    );
+  }
 
   try {
     // Compute date range: Monday 00:00 to Saturday 00:00 (covers Mon-Fri)
@@ -108,6 +118,13 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ matched: matches.length });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("Granola sync failed:", message);
+    return NextResponse.json(
+      { error: `Granola sync failed: ${message}` },
+      { status: 500 }
+    );
   } finally {
     await mcpClient.close();
   }
