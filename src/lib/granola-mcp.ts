@@ -53,6 +53,11 @@ export async function createGranolaClient(
 // --- Tool helpers ---
 
 function extractText(result: Awaited<ReturnType<Client["callTool"]>>): string {
+  if (result.isError) {
+    const content = result.content as Array<{ type: string; text?: string }>;
+    const errorText = content.find((c) => c.type === "text")?.text ?? "Unknown MCP error";
+    throw new Error(`Granola MCP error: ${errorText}`);
+  }
   const content = result.content as Array<{ type: string; text?: string }>;
   const textPart = content.find((c) => c.type === "text");
   return textPart?.text ?? "";
