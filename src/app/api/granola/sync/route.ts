@@ -108,11 +108,13 @@ export async function POST(request: Request) {
 
     // Fetch details and update meetings
     for (const { meeting, granolaNoteId } of matches) {
-      const summary = await queryMeetingSummary(mcpClient, granolaNoteId);
+      const { summary, url } = await queryMeetingSummary(mcpClient, granolaNoteId);
+      // Store the real Granola web URL (not the MCP note ID)
+      const linkId = url ?? `https://notes.granola.ai/t/${granolaNoteId}`;
       await supabase
         .from("meetings")
         .update({
-          granola_note_id: granolaNoteId,
+          granola_note_id: linkId,
           granola_summary: summary,
         })
         .eq("id", meeting.id);

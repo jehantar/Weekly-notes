@@ -94,7 +94,7 @@ function parseMeetingsList(text: string): GranolaNoteListItem[] {
 export async function queryMeetingSummary(
   client: Client,
   noteId: string
-): Promise<string | null> {
+): Promise<{ summary: string | null; url: string | null }> {
   const result = await client.callTool({
     name: "get_meetings",
     arguments: {
@@ -103,10 +103,14 @@ export async function queryMeetingSummary(
   });
 
   const rawText = extractText(result).trim();
-  if (!rawText) return null;
+  if (!rawText) return { summary: null, url: null };
+
+  // Extract the real Granola URL from the note content
+  const urlMatch = rawText.match(/https:\/\/notes\.granola\.ai\/t\/[a-f0-9-]+/);
+  const url = urlMatch ? urlMatch[0] : null;
 
   const summary = await summarizeMeeting(rawText);
-  return summary || null;
+  return { summary: summary || null, url };
 }
 
 // --- Matching ---

@@ -12,6 +12,7 @@ type InlineEditProps = {
   multiline?: boolean;
   autoEdit?: boolean;
   onEnter?: () => void;
+  onBackspace?: () => void;
 };
 
 export function InlineEdit({
@@ -23,6 +24,7 @@ export function InlineEdit({
   multiline = false,
   autoEdit = false,
   onEnter,
+  onBackspace,
 }: InlineEditProps) {
   const [editing, setEditing] = useState(autoEdit);
   const [draft, setDraft] = useState(value);
@@ -76,6 +78,11 @@ export function InlineEdit({
     if (e.key === "Escape") {
       setDraft(value);
       setEditing(false);
+    }
+    if (!multiline && e.key === "Backspace" && draft === "" && onBackspace) {
+      e.preventDefault();
+      onBackspace();
+      return;
     }
     if (!multiline && e.key === "Enter") {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);

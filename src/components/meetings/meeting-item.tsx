@@ -9,9 +9,10 @@ type MeetingItemProps = {
   meeting: Meeting;
   autoEdit?: boolean;
   onAddNext?: () => void;
+  onBackspace?: () => void;
 };
 
-export function MeetingItem({ meeting, autoEdit, onAddNext }: MeetingItemProps) {
+export function MeetingItem({ meeting, autoEdit, onAddNext, onBackspace }: MeetingItemProps) {
   const { updateMeeting, deleteMeeting, unlinkGranolaMeeting } = useWeek();
 
   const handleSave = (title: string) => {
@@ -32,6 +33,7 @@ export function MeetingItem({ meeting, autoEdit, onAddNext }: MeetingItemProps) 
           placeholder="Meeting title..."
           autoEdit={autoEdit}
           onEnter={onAddNext}
+          onBackspace={onBackspace}
           renderView={(v) => (
             <span className="font-bold underline">{v}</span>
           )}
@@ -45,7 +47,7 @@ export function MeetingItem({ meeting, autoEdit, onAddNext }: MeetingItemProps) 
             )}
             <span className="flex items-center gap-2">
               <a
-                href={`https://notes.granola.ai/t/${meeting.granola_note_id}`}
+                href={meeting.granola_note_id}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs text-blue-500 hover:text-blue-700 hover:underline"
