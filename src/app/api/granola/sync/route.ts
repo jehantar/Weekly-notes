@@ -65,7 +65,9 @@ export async function POST(request: Request) {
     ]);
 
     const meetings = (meetingsRes.data ?? []) as Meeting[];
-    if (meetings.length === 0 || granolaNotes.length === 0) {
+    // Skip meetings that already have a Granola summary
+    const unsynced = meetings.filter((m) => !m.granola_summary);
+    if (unsynced.length === 0 || granolaNotes.length === 0) {
       return NextResponse.json({ matched: 0 });
     }
 
@@ -73,7 +75,7 @@ export async function POST(request: Request) {
     const consumed = new Set<string>();
     const matches: { meeting: Meeting; granolaNoteId: string }[] = [];
 
-    for (const meeting of meetings) {
+    for (const meeting of unsynced) {
       // Find best matching Granola note
       let bestMatch: GranolaNoteListItem | null = null;
 

@@ -10,16 +10,24 @@ import { PriorityPicker } from "./priority-picker";
 import { getPriorityBg } from "@/lib/utils/priority";
 import type { ActionItem } from "@/lib/types/database";
 
+type ActionItemRowProps = {
+  item: ActionItem;
+  dayOfWeek: number;
+  autoEdit?: boolean;
+  onAddNext?: () => void;
+  onBackspace?: () => void;
+};
+
 export function ActionItemRow({
   item,
   dayOfWeek,
-}: {
-  item: ActionItem;
-  dayOfWeek: number;
-}) {
+  autoEdit,
+  onAddNext,
+  onBackspace,
+}: ActionItemRowProps) {
   const { toggleDone, updateActionItem, deleteActionItem, meetings } =
     useWeek();
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState(!!autoEdit);
   const [draft, setDraft] = useState(item.content);
   const [showAutocomplete, setShowAutocomplete] = useState(false);
   const [hashPrefix, setHashPrefix] = useState("");
@@ -34,6 +42,12 @@ export function ActionItemRow({
   useEffect(() => {
     setDraft(item.content);
   }, [item.content]);
+
+  useEffect(() => {
+    if (autoEdit) {
+      setEditing(true);
+    }
+  }, [autoEdit]);
 
   const save = (value: string) => {
     if (!value.trim()) {
@@ -95,7 +109,16 @@ export function ActionItemRow({
       setShowAutocomplete(false);
     }
     if (e.key === "Enter") {
-      handleBlur();
+      e.preventDefault();
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      save(draft);
+      setEditing(false);
+      setShowAutocomplete(false);
+      onAddNext?.();
+    }
+    if (e.key === "Backspace" && draft === "") {
+      e.preventDefault();
+      onBackspace?.();
     }
   };
 
