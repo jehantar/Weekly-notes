@@ -76,7 +76,6 @@ export async function fetchNotesForRange(
  * Format: <meeting id="..." title="..." date="...">
  */
 function parseMeetingsList(text: string): GranolaNoteListItem[] {
-  console.log("[Granola] Raw list_meetings response:", text);
   const meetings: GranolaNoteListItem[] = [];
   const regex = /<meeting\s+id="([^"]+)"\s+title="([^"]+)"\s+date="([^"]+)"/g;
   let match;
@@ -87,7 +86,6 @@ function parseMeetingsList(text: string): GranolaNoteListItem[] {
       created_at: match[3],
     });
   }
-  console.log("[Granola] Parsed meeting IDs:", meetings.map(m => ({ id: m.id, title: m.title })));
   return meetings;
 }
 
@@ -95,21 +93,28 @@ export async function queryMeetingSummary(
   client: Client,
   noteId: string
 ): Promise<{ summary: string | null; url: string | null }> {
-  const result = await client.callTool({
-    name: "get_meetings",
-    arguments: {
-      meeting_ids: [noteId],
-    },
-  });
+  // Fetch detailed meeting content and query for citation URL in parallel
+  const [detailResult, queryResult] = await Promise.all([
+    client.callTool({
+      name: "get_meetings",
+      arguments: { meeting_ids: [noteId] },
+    }),
+    client.callTool({
+      name: "query_granola_meetings",
+      arguments: {
+        query: "Link to this meeting",
+        document_ids: [noteId],
+      },
+    }),
+  ]);
 
-  const rawText = extractText(result).trim();
-  console.log("[Granola] Raw get_meetings response (last 500 chars):", rawText.slice(-500));
-  if (!rawText) return { summary: null, url: null };
+  // Extract the real Granola web URL from query citation links like [[0]](url)
+  const queryText = extractText(queryResult);
+  const urlMatch = queryText.match(/\]\((https:\/\/notes\.granola\.ai\/[^)]+)\)/);
+  const url = urlMatch ? urlMatch[1] : null;
 
-  // Extract the real Granola URL from the note content
-  const urlMatch = rawText.match(/https:\/\/notes\.granola\.ai\/[^\s)>]+/);
-  console.log("[Granola] Extracted URL:", urlMatch?.[0] ?? "NOT FOUND");
-  const url = urlMatch ? urlMatch[0] : null;
+  const rawText = extractText(detailResult).trim();
+  if (!rawText) return { summary: null, url };
 
   const summary = await summarizeMeeting(rawText);
   return { summary: summary || null, url };

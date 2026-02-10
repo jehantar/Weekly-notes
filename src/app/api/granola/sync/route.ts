@@ -102,7 +102,6 @@ export async function POST(request: Request) {
       if (bestMatch) {
         consumed.add(bestMatch.id);
         matches.push({ meeting, granolaNoteId: bestMatch.id });
-        console.log(`[Granola] Matched "${meeting.title}" → granola_note_id: ${bestMatch.id}`);
       }
     }
 
