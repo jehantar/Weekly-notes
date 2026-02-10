@@ -33,6 +33,19 @@ export async function GET(request: Request) {
       return NextResponse.json({ raw: result });
     }
 
+    if (action === "get") {
+      // Call get_meetings with a specific ID and return raw response
+      const noteId = url.searchParams.get("id");
+      if (!noteId) {
+        return NextResponse.json({ error: "id param required" }, { status: 400 });
+      }
+      const result = await mcpClient.callTool({
+        name: "get_meetings",
+        arguments: { meeting_ids: [noteId] },
+      });
+      return NextResponse.json({ raw: result });
+    }
+
     const { tools } = await mcpClient.listTools();
     return NextResponse.json({
       tools: tools.map((t) => ({
