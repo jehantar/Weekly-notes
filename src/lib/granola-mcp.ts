@@ -103,10 +103,12 @@ export async function queryMeetingSummary(
   });
 
   const rawText = extractText(result).trim();
+  console.log("[Granola] Raw get_meetings response (last 500 chars):", rawText.slice(-500));
   if (!rawText) return { summary: null, url: null };
 
   // Extract the real Granola URL from the note content
-  const urlMatch = rawText.match(/https:\/\/notes\.granola\.ai\/t\/[a-f0-9-]+/);
+  const urlMatch = rawText.match(/https:\/\/notes\.granola\.ai\/[^\s)>]+/);
+  console.log("[Granola] Extracted URL:", urlMatch?.[0] ?? "NOT FOUND");
   const url = urlMatch ? urlMatch[0] : null;
 
   const summary = await summarizeMeeting(rawText);
