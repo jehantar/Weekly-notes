@@ -26,6 +26,7 @@ type WeekContextType = WeekData & {
   updateMeeting: (id: string, title: string) => Promise<void>;
   deleteMeeting: (id: string) => void;
   refreshMeetings: () => Promise<void>;
+  unlinkGranolaMeeting: (meetingId: string) => Promise<void>;
   // Action Items
   addActionItem: (dayOfWeek: number, content: string) => Promise<ActionItem | null>;
   updateActionItem: (id: string, updates: Partial<ActionItem>) => Promise<void>;
@@ -76,6 +77,36 @@ export function WeekProvider({
   }, [weekId, supabase]);
 
   // --- Meetings ---
+
+  const unlinkGranolaMeeting = useCallback(
+    async (meetingId: string) => {
+      const meeting = meetings.find((m) => m.id === meetingId);
+      if (!meeting) return;
+
+      // Optimistic update
+      setMeetings((prev) =>
+        prev.map((m) =>
+          m.id === meetingId
+            ? { ...m, granola_note_id: null, granola_summary: null }
+            : m
+        )
+      );
+
+      const { error } = await supabase
+        .from("meetings")
+        .update({ granola_note_id: null, granola_summary: null })
+        .eq("id", meetingId);
+
+      if (error) {
+        // Rollback
+        setMeetings((prev) =>
+          prev.map((m) => (m.id === meetingId ? meeting : m))
+        );
+        toast.error("Failed to unlink Granola note");
+      }
+    },
+    [meetings, supabase]
+  );
 
   const addMeeting = useCallback(
     async (dayOfWeek: number, title: string): Promise<Meeting | null> => {
@@ -387,6 +418,7 @@ export function WeekProvider({
         updateMeeting,
         deleteMeeting,
         refreshMeetings,
+        unlinkGranolaMeeting,
         addActionItem,
         updateActionItem,
         deleteActionItem,

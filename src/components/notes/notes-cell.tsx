@@ -1,102 +1,92 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Underline from "@tiptap/extension-underline";
+import Placeholder from "@tiptap/extension-placeholder";
 import { useWeek } from "@/components/providers/week-provider";
-import { MarkdownBlock } from "@/components/shared/markdown-render";
+import { NoteToolbar } from "./note-toolbar";
 import { AUTOSAVE_DELAY } from "@/lib/constants";
+import { marked } from "marked";
+
+/** Convert legacy markdown content to HTML for TipTap */
+function markdownToHtml(content: string): string {
+  if (!content || content.startsWith("<")) return content;
+  return marked.parse(content, { async: false }) as string;
+}
 
 export function NotesCell({ dayOfWeek }: { dayOfWeek: number }) {
   const { notes, upsertNote } = useWeek();
   const note = notes.find((n) => n.day_of_week === dayOfWeek);
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(note?.content ?? "");
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [focused, setFocused] = useState(false);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-
-  useEffect(() => {
-    setDraft(note?.content ?? "");
-  }, [note?.content]);
-
-  useEffect(() => {
-    if (editing && textareaRef.current) {
-      textareaRef.current.focus();
-      autoResize(textareaRef.current);
-    }
-  }, [editing]);
-
-  const autoResize = (el: HTMLTextAreaElement) => {
-    el.style.height = "auto";
-    el.style.height = el.scrollHeight + "px";
-  };
+  const savedContentRef = useRef(note?.content ?? "");
 
   const save = useCallback(
-    (content: string) => {
+    (html: string) => {
+      // Treat empty paragraph as empty
+      const isEmpty = !html || html === "<p></p>";
+      const content = isEmpty ? "" : html;
+      savedContentRef.current = content;
       upsertNote(dayOfWeek, content);
     },
     [dayOfWeek, upsertNote]
   );
 
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const val = e.target.value;
-    setDraft(val);
-    autoResize(e.target);
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    saveTimerRef.current = setTimeout(() => save(val), AUTOSAVE_DELAY);
-  };
-
-  const handleBlur = () => {
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    save(draft);
-    setEditing(false);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Escape") {
-      setDraft(note?.content ?? "");
-      setEditing(false);
-    }
-    // Tab for indentation
-    if (e.key === "Tab") {
-      e.preventDefault();
-      const start = e.currentTarget.selectionStart;
-      const end = e.currentTarget.selectionEnd;
-      const newVal = draft.slice(0, start) + "  " + draft.slice(end);
-      setDraft(newVal);
-      requestAnimationFrame(() => {
-        if (textareaRef.current) {
-          textareaRef.current.selectionStart =
-            textareaRef.current.selectionEnd = start + 2;
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        heading: false,
+      }),
+      Underline,
+      Placeholder.configure({
+        placeholder: "Click to add notes...",
+      }),
+    ],
+    content: markdownToHtml(note?.content ?? ""),
+    editorProps: {
+      attributes: {
+        class: "outline-none min-h-[2em] tiptap-notes",
+      },
+      handleKeyDown: (_view, event) => {
+        if (event.key === "Escape") {
+          // Revert to saved content
+          editor?.commands.setContent(savedContentRef.current);
+          (document.activeElement as HTMLElement)?.blur();
+          return true;
         }
-      });
-    }
-  };
+        return false;
+      },
+    },
+    onUpdate: ({ editor: e }) => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = setTimeout(() => {
+        save(e.getHTML());
+      }, AUTOSAVE_DELAY);
+    },
+    onFocus: () => setFocused(true),
+    onBlur: () => {
+      setFocused(false);
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      if (editor) save(editor.getHTML());
+    },
+  });
 
-  if (editing) {
-    return (
-      <div className="border-b border-r border-gray-300 p-2 min-h-[60px] text-xs">
-        <textarea
-          ref={textareaRef}
-          value={draft}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          onKeyDown={handleKeyDown}
-          className="w-full resize-none outline-none bg-transparent font-mono text-xs"
-          rows={3}
-        />
-      </div>
-    );
-  }
+  // Sync external content changes (e.g. from other tabs)
+  useEffect(() => {
+    if (!editor || editor.isFocused) return;
+    const html = markdownToHtml(note?.content ?? "");
+    if (editor.getHTML() !== html) {
+      editor.commands.setContent(html);
+      savedContentRef.current = note?.content ?? "";
+    }
+  }, [note?.content, editor]);
 
   return (
-    <div
-      onClick={() => setEditing(true)}
-      className="border-b border-r border-gray-300 p-2 min-h-[60px] text-xs cursor-text"
-    >
-      {draft ? (
-        <MarkdownBlock content={draft} />
-      ) : (
-        <span className="text-gray-300">Click to add notes...</span>
-      )}
+    <div className="border-b border-r border-gray-300 p-2 min-h-[60px] text-xs">
+      {focused && editor && <NoteToolbar editor={editor} />}
+      <EditorContent editor={editor} />
     </div>
   );
 }

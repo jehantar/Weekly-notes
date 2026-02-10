@@ -76,6 +76,7 @@ export async function fetchNotesForRange(
  * Format: <meeting id="..." title="..." date="...">
  */
 function parseMeetingsList(text: string): GranolaNoteListItem[] {
+  console.log("[Granola] Raw list_meetings response:", text);
   const meetings: GranolaNoteListItem[] = [];
   const regex = /<meeting\s+id="([^"]+)"\s+title="([^"]+)"\s+date="([^"]+)"/g;
   let match;
@@ -86,6 +87,7 @@ function parseMeetingsList(text: string): GranolaNoteListItem[] {
       created_at: match[3],
     });
   }
+  console.log("[Granola] Parsed meeting IDs:", meetings.map(m => ({ id: m.id, title: m.title })));
   return meetings;
 }
 

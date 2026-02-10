@@ -10,6 +10,8 @@ type InlineEditProps = {
   className?: string;
   renderView?: (value: string) => React.ReactNode;
   multiline?: boolean;
+  autoEdit?: boolean;
+  onEnter?: () => void;
 };
 
 export function InlineEdit({
@@ -19,8 +21,10 @@ export function InlineEdit({
   className = "",
   renderView,
   multiline = false,
+  autoEdit = false,
+  onEnter,
 }: InlineEditProps) {
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState(autoEdit);
   const [draft, setDraft] = useState(value);
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -28,6 +32,10 @@ export function InlineEdit({
   useEffect(() => {
     setDraft(value);
   }, [value]);
+
+  useEffect(() => {
+    if (autoEdit) setEditing(true);
+  }, [autoEdit]);
 
   useEffect(() => {
     if (editing && inputRef.current) {
@@ -70,7 +78,13 @@ export function InlineEdit({
       setEditing(false);
     }
     if (!multiline && e.key === "Enter") {
-      handleBlur();
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      save(draft);
+      if (onEnter) {
+        onEnter();
+      } else {
+        setEditing(false);
+      }
     }
   };
 

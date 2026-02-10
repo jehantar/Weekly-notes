@@ -2,11 +2,17 @@
 
 import { useWeek } from "@/components/providers/week-provider";
 import { InlineEdit } from "@/components/shared/inline-edit";
-import { MarkdownBlock, MarkdownInline } from "@/components/shared/markdown-render";
+import { MarkdownBlock } from "@/components/shared/markdown-render";
 import type { Meeting } from "@/lib/types/database";
 
-export function MeetingItem({ meeting }: { meeting: Meeting }) {
-  const { updateMeeting, deleteMeeting } = useWeek();
+type MeetingItemProps = {
+  meeting: Meeting;
+  autoEdit?: boolean;
+  onAddNext?: () => void;
+};
+
+export function MeetingItem({ meeting, autoEdit, onAddNext }: MeetingItemProps) {
+  const { updateMeeting, deleteMeeting, unlinkGranolaMeeting } = useWeek();
 
   const handleSave = (title: string) => {
     if (!title.trim()) {
@@ -24,7 +30,11 @@ export function MeetingItem({ meeting }: { meeting: Meeting }) {
           value={meeting.title}
           onSave={handleSave}
           placeholder="Meeting title..."
-          renderView={(v) => <MarkdownInline content={v} />}
+          autoEdit={autoEdit}
+          onEnter={onAddNext}
+          renderView={(v) => (
+            <span className="font-bold underline">{v}</span>
+          )}
         />
         {meeting.granola_note_id && (
           <div className="mt-0.5 ml-0.5">
@@ -33,14 +43,22 @@ export function MeetingItem({ meeting }: { meeting: Meeting }) {
                 <MarkdownBlock content={meeting.granola_summary} />
               </div>
             )}
-            <a
-              href={`https://notes.granola.ai/t/${meeting.granola_note_id}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-blue-500 hover:text-blue-700 hover:underline"
-            >
-              View in Granola
-            </a>
+            <span className="flex items-center gap-2">
+              <a
+                href={`https://notes.granola.ai/t/${meeting.granola_note_id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-blue-500 hover:text-blue-700 hover:underline"
+              >
+                View in Granola
+              </a>
+              <button
+                onClick={() => unlinkGranolaMeeting(meeting.id)}
+                className="text-xs text-gray-400 hover:text-red-500"
+              >
+                Unlink
+              </button>
+            </span>
           </div>
         )}
       </div>

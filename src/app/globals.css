@@ -1,1 +1,52 @@
 @import "tailwindcss";
+
+/* TipTap editor styles for notes */
+.tiptap-notes {
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+.tiptap-notes p {
+  margin: 0;
+}
+
+.tiptap-notes ul,
+.tiptap-notes ol {
+  padding-left: 1.2em;
+  margin: 0.2em 0;
+}
+
+.tiptap-notes ul {
+  list-style-type: disc;
+}
+
+.tiptap-notes ol {
+  list-style-type: decimal;
+}
+
+.tiptap-notes ul ul,
+.tiptap-notes ol ul {
+  list-style-type: circle;
+}
+
+.tiptap-notes ul ul ul,
+.tiptap-notes ol ol ul {
+  list-style-type: square;
+}
+
+.tiptap-notes li {
+  margin: 0;
+}
+
+.tiptap-notes li p {
+  margin: 0;
+}
+
+/* Placeholder styling */
+.tiptap-notes p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: #d1d5db;
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
