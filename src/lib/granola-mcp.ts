@@ -1,6 +1,7 @@
 import { Client } from "@modelcontextprotocol/sdk/client";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp";
 import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse";
+import { summarizeMeeting } from "./summarize";
 
 const MCP_URL = "https://mcp.granola.ai/mcp";
 
@@ -93,16 +94,17 @@ export async function queryMeetingSummary(
   noteId: string
 ): Promise<string | null> {
   const result = await client.callTool({
-    name: "query_granola_meetings",
+    name: "get_meetings",
     arguments: {
-      query:
-        "Summarize this meeting in 3-5 concise bullet points. Use markdown bullet format.",
-      document_ids: [noteId],
+      meeting_ids: [noteId],
     },
   });
 
-  const text = extractText(result).trim();
-  return text || null;
+  const rawText = extractText(result).trim();
+  if (!rawText) return null;
+
+  const summary = await summarizeMeeting(rawText);
+  return summary || null;
 }
 
 // --- Matching ---

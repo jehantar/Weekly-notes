@@ -34,7 +34,7 @@ export function MeetingItem({ meeting }: { meeting: Meeting }) {
               </div>
             )}
             <a
-              href={`https://granola.ai/notes/${meeting.granola_note_id}`}
+              href={`https://notes.granola.ai/t/${meeting.granola_note_id}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs text-blue-500 hover:text-blue-700 hover:underline"
