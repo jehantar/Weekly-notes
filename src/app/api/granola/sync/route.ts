@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import {
   createGranolaClient,
   fetchNotesForRange,
-  fetchNoteDetail,
+  queryMeetingSummary,
   titlesMatch,
 } from "@/lib/granola-mcp";
 import type { GranolaNoteListItem } from "@/lib/granola-mcp";
@@ -107,12 +107,12 @@ export async function POST(request: Request) {
 
     // Fetch details and update meetings
     for (const { meeting, granolaNoteId } of matches) {
-      const detail = await fetchNoteDetail(mcpClient, granolaNoteId);
+      const summary = await queryMeetingSummary(mcpClient, granolaNoteId);
       await supabase
         .from("meetings")
         .update({
           granola_note_id: granolaNoteId,
-          granola_summary: detail.summary_text ?? null,
+          granola_summary: summary,
         })
         .eq("id", meeting.id);
     }

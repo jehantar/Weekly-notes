@@ -12,17 +12,6 @@ export type GranolaNoteListItem = {
   created_at: string;
 };
 
-export type GranolaNoteDetail = {
-  id: string;
-  title: string;
-  summary_text: string | null;
-  created_at: string;
-  calendar_event: {
-    title: string;
-    start_time: string;
-    end_time: string;
-  } | null;
-};
 
 // --- MCP Client ---
 
@@ -99,37 +88,21 @@ function parseMeetingsList(text: string): GranolaNoteListItem[] {
   return meetings;
 }
 
-export async function fetchNoteDetail(
+export async function queryMeetingSummary(
   client: Client,
   noteId: string
-): Promise<GranolaNoteDetail> {
+): Promise<string | null> {
   const result = await client.callTool({
-    name: "get_meetings",
-    arguments: { meeting_ids: [noteId] },
+    name: "query_granola_meetings",
+    arguments: {
+      query:
+        "Summarize this meeting in 3-5 concise bullet points. Use markdown bullet format.",
+      document_ids: [noteId],
+    },
   });
 
-  const text = extractText(result);
-
-  // Extract title from XML if present
-  const titleMatch = text.match(/<meeting[^>]+title="([^"]+)"/);
-  const dateMatch = text.match(/<meeting[^>]+date="([^"]+)"/);
-
-  // Extract summary/notes content — look for common XML tags or use full text
-  const summaryMatch =
-    text.match(/<notes>([\s\S]*?)<\/notes>/) ??
-    text.match(/<summary>([\s\S]*?)<\/summary>/) ??
-    text.match(/<content>([\s\S]*?)<\/content>/);
-
-  // Use the full text as summary if no structured content found
-  const summaryText = summaryMatch?.[1]?.trim() ?? text;
-
-  return {
-    id: noteId,
-    title: titleMatch?.[1] ?? "",
-    summary_text: summaryText,
-    created_at: dateMatch?.[1] ?? "",
-    calendar_event: null,
-  };
+  const text = extractText(result).trim();
+  return text || null;
 }
 
 // --- Matching ---

@@ -2,7 +2,7 @@
 
 import { useWeek } from "@/components/providers/week-provider";
 import { InlineEdit } from "@/components/shared/inline-edit";
-import { MarkdownInline } from "@/components/shared/markdown-render";
+import { MarkdownBlock, MarkdownInline } from "@/components/shared/markdown-render";
 import type { Meeting } from "@/lib/types/database";
 
 export function MeetingItem({ meeting }: { meeting: Meeting }) {
@@ -29,12 +29,12 @@ export function MeetingItem({ meeting }: { meeting: Meeting }) {
         {meeting.granola_note_id && (
           <div className="mt-0.5 ml-0.5">
             {meeting.granola_summary && (
-              <p className="text-xs text-gray-500 line-clamp-2">
-                {meeting.granola_summary}
-              </p>
+              <div className="text-xs text-gray-500">
+                <MarkdownBlock content={meeting.granola_summary} />
+              </div>
             )}
             <a
-              href={`https://app.granola.ai/notes/${meeting.granola_note_id}`}
+              href={`https://granola.ai/notes/${meeting.granola_note_id}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs text-blue-500 hover:text-blue-700 hover:underline"
