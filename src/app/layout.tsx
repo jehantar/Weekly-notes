@@ -5,6 +5,9 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Weekly Notes",
   description: "Weekly meetings, action items, and notes tracker",
+  icons: {
+    icon: "/favicon.png",
+  },
 };
 
 export default function RootLayout({
