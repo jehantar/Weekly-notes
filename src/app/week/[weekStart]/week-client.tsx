@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Header } from "@/components/layout/header";
 import { DayCards } from "@/components/layout/day-cards";
 import { CreateWeekModal } from "@/components/modals/create-week-modal";
+import { SearchCommand } from "@/components/layout/search-command";
 import { parseWeekStart } from "@/lib/utils/dates";
 import { toast } from "sonner";
 
@@ -16,6 +17,7 @@ export function WeekClient({
   weekExists: boolean;
 }) {
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const monday = parseWeekStart(weekStart);
   const searchParams = useSearchParams();
 
@@ -40,9 +42,24 @@ export function WeekClient({
     }
   }, [searchParams, weekStart]);
 
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+      if (e.key === "/" && !["INPUT", "TEXTAREA"].includes((e.target as HTMLElement).tagName) && !(e.target as HTMLElement).isContentEditable) {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col">
-      <Header weekStart={weekStart} monday={monday} />
+      <Header weekStart={weekStart} monday={monday} onSearchOpen={() => setSearchOpen(true)} />
       <main className="flex-1 p-4 overflow-hidden">
         <DayCards monday={monday} />
       </main>
@@ -52,6 +69,7 @@ export function WeekClient({
           onClose={() => setShowCreateModal(false)}
         />
       )}
+      {searchOpen && <SearchCommand onClose={() => setSearchOpen(false)} />}
     </div>
   );
 }
