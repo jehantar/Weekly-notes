@@ -38,7 +38,7 @@ export function ActionItemsCell({ dayOfWeek }: { dayOfWeek: number }) {
   };
 
   return (
-    <div className="border-b border-r border-gray-300 p-2 min-h-[60px] text-xs">
+    <div className="text-xs">
       <ul className="space-y-0.5">
         {dayItems.map((item) => (
           <ActionItemRow
