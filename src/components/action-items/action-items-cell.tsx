@@ -51,9 +51,15 @@ export function ActionItemsCell({ dayOfWeek }: { dayOfWeek: number }) {
           />
         ))}
       </ul>
+      {dayItems.length === 0 && (
+        <p className="text-center py-2 text-[10px]" style={{ color: 'var(--text-placeholder)' }}>
+          No items
+        </p>
+      )}
       <button
         onClick={handleAdd}
-        className="text-gray-300 hover:text-gray-500 mt-1 text-xs"
+        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 mt-1 text-xs"
+        style={{ color: 'var(--text-placeholder)' }}
       >
         + Add item
       </button>

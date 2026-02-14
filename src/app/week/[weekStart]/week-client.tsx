@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Header } from "@/components/layout/header";
 import { DayCards } from "@/components/layout/day-cards";
 import { CreateWeekModal } from "@/components/modals/create-week-modal";
 import { SearchCommand } from "@/components/layout/search-command";
-import { parseWeekStart } from "@/lib/utils/dates";
+import { parseWeekStart, addWeeks as addWeeksUtil, formatWeekStart } from "@/lib/utils/dates";
 import { toast } from "sonner";
 
 export function WeekClient({
@@ -20,6 +20,7 @@ export function WeekClient({
   const [searchOpen, setSearchOpen] = useState(false);
   const monday = parseWeekStart(weekStart);
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   useEffect(() => {
     if (!weekExists) {
@@ -56,6 +57,23 @@ export function WeekClient({
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  // Arrow key week navigation
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (["INPUT", "TEXTAREA"].includes((e.target as HTMLElement).tagName) || (e.target as HTMLElement).isContentEditable) return;
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        router.push(`/week/${formatWeekStart(addWeeksUtil(monday, -1))}`);
+      }
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        router.push(`/week/${formatWeekStart(addWeeksUtil(monday, 1))}`);
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [monday, router]);
 
   return (
     <div className="min-h-screen flex flex-col">
