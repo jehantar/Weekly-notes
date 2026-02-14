@@ -39,7 +39,7 @@ export function MeetingsCell({ dayOfWeek }: { dayOfWeek: number }) {
   };
 
   return (
-    <div className="border-b border-r border-gray-300 p-2 min-h-[60px] text-xs">
+    <div className="text-xs">
       <ul className="space-y-1">
         {dayMeetings.map((meeting) => (
           <MeetingItem
@@ -51,9 +51,15 @@ export function MeetingsCell({ dayOfWeek }: { dayOfWeek: number }) {
           />
         ))}
       </ul>
+      {dayMeetings.length === 0 && (
+        <p className="text-center py-2 text-[10px]" style={{ color: 'var(--text-placeholder)' }}>
+          No meetings
+        </p>
+      )}
       <button
         onClick={handleAdd}
-        className="text-gray-300 hover:text-gray-500 mt-1 text-xs"
+        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 mt-1 text-xs"
+        style={{ color: 'var(--text-placeholder)' }}
       >
         + Add meeting
       </button>

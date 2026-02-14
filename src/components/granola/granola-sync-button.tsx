@@ -85,7 +85,8 @@ export function GranolaSyncButton({ weekStart }: { weekStart: string }) {
     <button
       onClick={handleClick}
       disabled={!!isDisabled}
-      className="text-sm px-3 py-1 rounded border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+      className="text-sm px-3 py-1 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+      style={{ border: '1px solid var(--border-card)' }}
     >
       {label}
     </button>

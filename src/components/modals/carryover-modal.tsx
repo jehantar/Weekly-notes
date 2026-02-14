@@ -67,8 +67,8 @@ export function CarryoverModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-      <div className="bg-white border border-gray-300 p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+    <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(2px)' }}>
+      <div className="p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-xl" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-card)' }}>
         <h2 className="text-lg font-bold mb-1">Carry Over Action Items</h2>
         <p className="text-xs text-gray-500 mb-4">
           {items.length} incomplete item{items.length !== 1 ? "s" : ""} from

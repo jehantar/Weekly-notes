@@ -66,7 +66,7 @@ export function MeetingItem({ meeting, autoEdit, onAddNext, onBackspace }: Meeti
       </div>
       <button
         onClick={() => deleteMeeting(meeting.id)}
-        className="text-gray-300 hover:text-red-400 opacity-0 group-hover:opacity-100 text-xs ml-1 shrink-0"
+        className="text-gray-300 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-xs ml-1 shrink-0"
         aria-label="Delete meeting"
       >
         &times;

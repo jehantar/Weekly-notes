@@ -1,4 +1,16 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
 @import "tailwindcss";
+
+/* Design tokens */
+:root {
+  --bg-page: #f8f7f5;
+  --bg-card: #ffffff;
+  --border-card: #e5e3df;
+  --accent-purple: #8b7ec8;
+  --text-primary: #1a1a1a;
+  --text-secondary: #6b6560;
+  --text-placeholder: #a8a29e;
+}
 
 /* TipTap editor styles for notes */
 .tiptap-notes {
@@ -49,4 +61,15 @@
   float: left;
   height: 0;
   pointer-events: none;
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes checkPop {
+  0% { transform: scale(0); }
+  70% { transform: scale(1.2); }
+  100% { transform: scale(1); }
 }

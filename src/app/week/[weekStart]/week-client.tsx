@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Header } from "@/components/layout/header";
-import { WeekGrid } from "@/components/grid/week-grid";
+import { DayCards } from "@/components/layout/day-cards";
 import { CreateWeekModal } from "@/components/modals/create-week-modal";
-import { parseWeekStart } from "@/lib/utils/dates";
+import { SearchCommand } from "@/components/layout/search-command";
+import { parseWeekStart, addWeeks as addWeeksUtil, formatWeekStart } from "@/lib/utils/dates";
 import { toast } from "sonner";
 
 export function WeekClient({
@@ -16,8 +17,10 @@ export function WeekClient({
   weekExists: boolean;
 }) {
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const monday = parseWeekStart(weekStart);
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   useEffect(() => {
     if (!weekExists) {
@@ -40,11 +43,43 @@ export function WeekClient({
     }
   }, [searchParams, weekStart]);
 
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+      if (e.key === "/" && !["INPUT", "TEXTAREA"].includes((e.target as HTMLElement).tagName) && !(e.target as HTMLElement).isContentEditable) {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  // Arrow key week navigation
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (["INPUT", "TEXTAREA"].includes((e.target as HTMLElement).tagName) || (e.target as HTMLElement).isContentEditable) return;
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        router.push(`/week/${formatWeekStart(addWeeksUtil(monday, -1))}`);
+      }
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        router.push(`/week/${formatWeekStart(addWeeksUtil(monday, 1))}`);
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [monday, router]);
+
   return (
     <div className="min-h-screen flex flex-col">
-      <Header weekStart={weekStart} monday={monday} />
-      <main className="flex-1 p-4">
-        <WeekGrid monday={monday} />
+      <Header weekStart={weekStart} monday={monday} onSearchOpen={() => setSearchOpen(true)} />
+      <main className="flex-1 p-4 overflow-hidden">
+        <DayCards monday={monday} />
       </main>
       {showCreateModal && (
         <CreateWeekModal
@@ -52,6 +87,7 @@ export function WeekClient({
           onClose={() => setShowCreateModal(false)}
         />
       )}
+      {searchOpen && <SearchCommand onClose={() => setSearchOpen(false)} />}
     </div>
   );
 }

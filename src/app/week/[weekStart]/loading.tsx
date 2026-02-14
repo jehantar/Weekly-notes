@@ -2,87 +2,73 @@ export default function Loading() {
   const days = [1, 2, 3, 4, 5];
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col min-h-screen" style={{ backgroundColor: 'var(--bg-page)' }}>
       {/* Header skeleton */}
-      <header className="border-b border-gray-300 px-4 py-2 flex items-center gap-4">
+      <header className="px-4 py-2 flex items-center gap-4" style={{ borderBottom: '1px solid var(--border-card)' }}>
         <div className="flex items-center gap-3">
-          <div className="h-8 w-16 bg-gray-200 animate-pulse rounded" />
-          <div className="h-5 w-[140px] bg-gray-200 animate-pulse rounded" />
-          <div className="h-8 w-16 bg-gray-200 animate-pulse rounded" />
+          <div className="h-7 w-16 bg-gray-200 animate-pulse" />
+          <div className="h-5 w-[140px] bg-gray-200 animate-pulse" />
+          <div className="h-7 w-16 bg-gray-200 animate-pulse" />
         </div>
         <div className="flex items-center gap-2 ml-auto">
-          <div className="h-8 w-8 bg-gray-200 animate-pulse rounded" />
-          <div className="h-8 w-48 bg-gray-200 animate-pulse rounded" />
+          <div className="h-7 w-14 bg-gray-200 animate-pulse" />
+          <div className="h-7 w-20 bg-gray-200 animate-pulse" />
         </div>
       </header>
 
-      {/* Grid skeleton */}
-      <div className="grid grid-cols-[120px_repeat(5,1fr)] border-t border-l border-gray-300 w-full">
-        {/* Header row */}
-        <div className="border-b border-r border-gray-300 bg-gray-50 p-2 text-xs font-bold text-gray-500">
-          Day
-        </div>
-        {days.map((d) => (
-          <div
-            key={`hdr-${d}`}
-            className="border-b border-r border-gray-300 bg-gray-50 p-2"
-          >
-            <div className="h-4 w-24 bg-gray-200 animate-pulse rounded" />
-          </div>
-        ))}
-
-        {/* Meetings row */}
-        <div className="border-b border-r border-gray-300 bg-gray-50 p-2 text-xs font-bold text-gray-500 flex items-start">
-          Key Meetings
-        </div>
-        {days.map((d) => (
-          <div
-            key={`mtg-${d}`}
-            className="border-b border-r border-gray-300 p-2 min-h-[60px] space-y-2"
-          >
-            <div className="h-3 w-3/4 bg-gray-200 animate-pulse rounded" />
-            <div className="h-3 w-1/2 bg-gray-200 animate-pulse rounded" />
-          </div>
-        ))}
-
-        {/* Action Items row */}
-        <div className="border-b border-r border-gray-300 bg-gray-50 p-2 text-xs font-bold text-gray-500 flex items-start">
-          Action Items
-        </div>
-        {days.map((d) => (
-          <div
-            key={`ai-${d}`}
-            className="border-b border-r border-gray-300 p-2 min-h-[60px] space-y-2"
-          >
-            <div className="flex items-center gap-1.5">
-              <div className="h-3 w-3 bg-gray-200 animate-pulse rounded-sm shrink-0" />
-              <div className="h-3 w-2/3 bg-gray-200 animate-pulse rounded" />
+      {/* Day cards skeleton */}
+      <div className="flex-1 p-4">
+        <div className="flex gap-3">
+          {days.map((d) => (
+            <div
+              key={d}
+              className="flex-1 min-w-0"
+              style={{
+                backgroundColor: 'var(--bg-card)',
+                border: '1px solid var(--border-card)',
+                boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.03)',
+              }}
+            >
+              {/* Day header skeleton */}
+              <div className="px-3 py-2" style={{ borderBottom: '1px solid var(--border-card)' }}>
+                <div className="flex items-baseline gap-2">
+                  <div className="h-5 w-6 bg-gray-200 animate-pulse" />
+                  <div className="h-3 w-8 bg-gray-200 animate-pulse" />
+                </div>
+              </div>
+              {/* Meetings skeleton */}
+              <div className="px-3 py-2" style={{ borderBottom: '1px solid var(--border-card)' }}>
+                <div className="h-2.5 w-14 bg-gray-100 animate-pulse mb-2" />
+                <div className="space-y-1.5">
+                  <div className="h-3 w-3/4 bg-gray-200 animate-pulse" />
+                  <div className="h-3 w-1/2 bg-gray-200 animate-pulse" />
+                </div>
+              </div>
+              {/* Action items skeleton */}
+              <div className="px-3 py-2" style={{ borderBottom: '1px solid var(--border-card)' }}>
+                <div className="h-2.5 w-20 bg-gray-100 animate-pulse mb-2" />
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <div className="h-3 w-3 bg-gray-200 animate-pulse rounded-full shrink-0" />
+                    <div className="h-3 w-2/3 bg-gray-200 animate-pulse" />
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="h-3 w-3 bg-gray-200 animate-pulse rounded-full shrink-0" />
+                    <div className="h-3 w-1/2 bg-gray-200 animate-pulse" />
+                  </div>
+                </div>
+              </div>
+              {/* Notes skeleton */}
+              <div className="px-3 py-2">
+                <div className="h-2.5 w-10 bg-gray-100 animate-pulse mb-2" />
+                <div className="space-y-1.5">
+                  <div className="h-3 w-full bg-gray-200 animate-pulse" />
+                  <div className="h-3 w-4/5 bg-gray-200 animate-pulse" />
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-1.5">
-              <div className="h-3 w-3 bg-gray-200 animate-pulse rounded-sm shrink-0" />
-              <div className="h-3 w-1/2 bg-gray-200 animate-pulse rounded" />
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="h-3 w-3 bg-gray-200 animate-pulse rounded-sm shrink-0" />
-              <div className="h-3 w-3/5 bg-gray-200 animate-pulse rounded" />
-            </div>
-          </div>
-        ))}
-
-        {/* Notes row */}
-        <div className="border-b border-r border-gray-300 bg-gray-50 p-2 text-xs font-bold text-gray-500 flex items-start">
-          Notes
+          ))}
         </div>
-        {days.map((d) => (
-          <div
-            key={`notes-${d}`}
-            className="border-b border-r border-gray-300 p-2 min-h-[60px] space-y-2"
-          >
-            <div className="h-3 w-full bg-gray-200 animate-pulse rounded" />
-            <div className="h-3 w-4/5 bg-gray-200 animate-pulse rounded" />
-            <div className="h-3 w-2/3 bg-gray-200 animate-pulse rounded" />
-          </div>
-        ))}
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { startOfWeek, format, addWeeks as addWeeksFns, parse, addDays } from "date-fns";
+import { startOfWeek, format, addWeeks as addWeeksFns, parse, addDays, isToday as isTodayFns } from "date-fns";
 
 /** Get the Monday of the week containing the given date */
 export function getMonday(date: Date = new Date()): Date {
@@ -35,4 +35,9 @@ export function parseWeekStart(weekStart: string): Date {
 /** Get the current week's Monday as YYYY-MM-DD */
 export function getCurrentWeekStart(): string {
   return formatWeekStart(getMonday());
+}
+
+/** Check if a specific day-of-week in a given week is today */
+export function isDayToday(monday: Date, dayOfWeek: number): boolean {
+  return isTodayFns(addDays(monday, dayOfWeek - 1));
 }

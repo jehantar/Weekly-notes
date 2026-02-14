@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { getWeekLabel, addWeeks, formatWeekStart } from "@/lib/utils/dates";
+import { getWeekLabel, addWeeks, formatWeekStart, getCurrentWeekStart } from "@/lib/utils/dates";
 
 export function WeekNav({
   weekStart,
@@ -21,7 +21,8 @@ export function WeekNav({
     <div className="flex items-center gap-3">
       <button
         onClick={() => navigateWeek(-1)}
-        className="px-2 py-1 border border-gray-300 hover:bg-gray-50 text-sm"
+        className="px-2 py-1 text-sm transition-colors duration-150 hover:bg-gray-100"
+        style={{ border: '1px solid var(--border-card)' }}
         aria-label="Previous week"
       >
         &larr; Prev
@@ -31,10 +32,18 @@ export function WeekNav({
       </span>
       <button
         onClick={() => navigateWeek(1)}
-        className="px-2 py-1 border border-gray-300 hover:bg-gray-50 text-sm"
+        className="px-2 py-1 text-sm transition-colors duration-150 hover:bg-gray-100"
+        style={{ border: '1px solid var(--border-card)' }}
         aria-label="Next week"
       >
         Next &rarr;
+      </button>
+      <button
+        onClick={() => router.push(`/week/${getCurrentWeekStart()}`)}
+        className="px-2 py-1 text-xs transition-colors duration-150 hover:bg-gray-100"
+        style={{ border: '1px solid var(--border-card)', color: 'var(--text-secondary)' }}
+      >
+        Today
       </button>
     </div>
   );

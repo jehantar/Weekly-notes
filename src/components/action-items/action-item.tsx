@@ -162,6 +162,7 @@ export function ActionItemRow({
         {item.is_done && (
           <svg
             className="w-2 h-2 text-white"
+            style={{ animation: 'checkPop 200ms ease-out' }}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -215,7 +216,7 @@ export function ActionItemRow({
       </div>
 
       {/* Priority + Delete */}
-      <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 shrink-0">
+      <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shrink-0">
         <PriorityPicker itemId={item.id} currentPriority={item.priority} />
         <button
           onClick={() => deleteActionItem(item.id)}

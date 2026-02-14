@@ -84,8 +84,12 @@ export function NotesCell({ dayOfWeek }: { dayOfWeek: number }) {
   }, [note?.content, editor]);
 
   return (
-    <div className="border-b border-r border-gray-300 p-2 min-h-[60px] text-xs">
-      {focused && editor && <NoteToolbar editor={editor} />}
+    <div className="text-xs">
+      {focused && editor && (
+        <div style={{ animation: 'fadeSlideIn 150ms ease-out' }}>
+          <NoteToolbar editor={editor} />
+        </div>
+      )}
       <EditorContent editor={editor} />
     </div>
   );
