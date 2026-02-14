@@ -34,13 +34,15 @@ export function CalendarPicker() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(!open)}
-        className="px-2 py-1 border border-gray-300 hover:bg-gray-50 text-sm"
+        className="px-2 py-1 text-sm transition-colors duration-150 hover:bg-gray-100"
+        style={{ border: '1px solid var(--border-card)' }}
         aria-label="Open calendar"
       >
         Cal
       </button>
       {open && (
-        <div className="absolute right-0 top-full mt-1 z-50 bg-white border border-gray-300 shadow-sm">
+        <div className="absolute right-0 top-full mt-1 z-50 shadow-lg"
+          style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-card)' }}>
           <DayPicker
             mode="single"
             onSelect={handleSelect}

@@ -36,7 +36,7 @@ export function Header({
   monday: Date;
 }) {
   return (
-    <header className="border-b border-gray-300 px-4 py-2 flex items-center gap-4">
+    <header className="px-4 py-2 flex items-center gap-4" style={{ borderBottom: '1px solid var(--border-card)' }}>
       <WeekNav weekStart={weekStart} monday={monday} />
       <div className="flex items-center gap-2 ml-auto">
         <GranolaErrorBoundary>
