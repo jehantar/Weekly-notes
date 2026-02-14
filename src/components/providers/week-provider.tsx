@@ -33,6 +33,7 @@ type WeekContextType = WeekData & {
   deleteActionItem: (id: string) => void;
   toggleDone: (id: string) => Promise<void>;
   setPriority: (id: string, priority: number) => Promise<void>;
+  removeActionItems: (ids: string[]) => void;
   // Notes
   upsertNote: (dayOfWeek: number, content: string) => Promise<void>;
   // Week
@@ -357,6 +358,13 @@ export function WeekProvider({
     [actionItems, supabase]
   );
 
+  const removeActionItems = useCallback(
+    (ids: string[]) => {
+      setActionItems((prev) => prev.filter((ai) => !ids.includes(ai.id)));
+    },
+    []
+  );
+
   // --- Notes ---
 
   const upsertNote = useCallback(
@@ -424,6 +432,7 @@ export function WeekProvider({
         deleteActionItem,
         toggleDone,
         setPriority,
+        removeActionItems,
         upsertNote,
         setWeekData,
       }}

@@ -6,9 +6,11 @@ import { getWeekLabel, addWeeks, formatWeekStart, getCurrentWeekStart } from "@/
 export function WeekNav({
   weekStart,
   monday,
+  onNavigateForward,
 }: {
   weekStart: string;
   monday: Date;
+  onNavigateForward?: () => void;
 }) {
   const router = useRouter();
 
@@ -31,7 +33,7 @@ export function WeekNav({
         {getWeekLabel(monday)}
       </span>
       <button
-        onClick={() => navigateWeek(1)}
+        onClick={() => onNavigateForward ? onNavigateForward() : navigateWeek(1)}
         className="px-2 py-1 text-sm transition-colors duration-150 hover:bg-gray-100"
         style={{ border: '1px solid var(--border-card)' }}
         aria-label="Next week"

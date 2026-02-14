@@ -31,14 +31,16 @@ export function Header({
   weekStart,
   monday,
   onSearchOpen,
+  onNavigateForward,
 }: {
   weekStart: string;
   monday: Date;
   onSearchOpen: () => void;
+  onNavigateForward?: () => void;
 }) {
   return (
     <header className="px-4 py-2 flex items-center gap-4" style={{ borderBottom: '1px solid var(--border-card)' }}>
-      <WeekNav weekStart={weekStart} monday={monday} />
+      <WeekNav weekStart={weekStart} monday={monday} onNavigateForward={onNavigateForward} />
       <div className="flex items-center gap-2 ml-auto">
         <GranolaErrorBoundary>
           <GranolaSyncButton weekStart={weekStart} />
