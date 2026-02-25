@@ -6,7 +6,7 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { KanbanCard } from "./kanban-card";
 import { AddTaskInline } from "./add-task-inline";
 import type { Task, TaskStatus } from "@/lib/types/database";
-import { TASK_STATUS_LABELS, STATUS_DOT_COLORS } from "@/lib/constants";
+import { TASK_STATUS_LABELS, STATUS_DOT_COLORS, taskSortCompare } from "@/lib/constants";
 import { useTasks } from "@/components/providers/tasks-provider";
 
 export function KanbanColumn({
@@ -31,7 +31,7 @@ export function KanbanColumn({
 
   const { setNodeRef } = useDroppable({ id: status });
 
-  const sortedTasks = [...tasks].sort((a, b) => a.sort_order - b.sort_order);
+  const sortedTasks = [...tasks].sort(taskSortCompare);
   const taskIds = sortedTasks.map((t) => t.id);
   const dotColor = STATUS_DOT_COLORS[status];
 

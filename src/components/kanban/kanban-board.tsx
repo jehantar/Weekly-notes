@@ -16,7 +16,7 @@ import {
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { KanbanColumn } from "./kanban-column";
 import { useTasks } from "@/components/providers/tasks-provider";
-import { TASK_STATUSES, PRIORITY_DOT_COLORS, safePriority } from "@/lib/constants";
+import { TASK_STATUSES, PRIORITY_DOT_COLORS, safePriority, taskSortCompare } from "@/lib/constants";
 import { TaskDetailPanel } from "./task-detail-panel";
 import type { Task, TaskStatus } from "@/lib/types/database";
 
@@ -86,7 +86,7 @@ export function KanbanBoard() {
     for (const status of TASK_STATUSES) {
       const columnTasks = tasks
         .filter((t) => t.status === status)
-        .sort((a, b) => a.sort_order - b.sort_order);
+        .sort(taskSortCompare);
       ids.push(...columnTasks.map((t) => t.id));
     }
     return ids;
@@ -270,7 +270,7 @@ export function KanbanBoard() {
 
         const sourceTasks = getColumnTasks(sourceColumn)
           .filter((t) => t.id !== activeId)
-          .sort((a, b) => a.sort_order - b.sort_order);
+          .sort(taskSortCompare);
         if (sourceTasks.length > 0) {
           await reorderTasks(sourceColumn, sourceTasks.map((t) => t.id));
         }

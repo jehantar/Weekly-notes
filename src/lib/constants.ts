@@ -24,6 +24,12 @@ export const STATUS_DOT_COLORS: Record<(typeof TASK_STATUSES)[number], string> =
   done: "#8baa8b",
 };
 
+/** Sort tasks by priority (high first), then sort_order. */
+export function taskSortCompare(a: { priority: number; sort_order: number }, b: { priority: number; sort_order: number }) {
+  if (a.priority !== b.priority) return b.priority - a.priority;
+  return a.sort_order - b.sort_order;
+}
+
 export const AUTOSAVE_DELAY = 1000;
 export const SEARCH_DEBOUNCE = 300;
 export const UNDO_TIMEOUT = 5000;
