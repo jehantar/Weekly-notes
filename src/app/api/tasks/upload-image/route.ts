@@ -19,6 +19,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Missing file or taskId" }, { status: 400 });
   }
 
+  // Verify task belongs to authenticated user
+  const { data: task } = await supabase
+    .from("tasks")
+    .select("id")
+    .eq("id", taskId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (!task) {
+    return NextResponse.json({ error: "Task not found" }, { status: 404 });
+  }
+
   if (!ALLOWED_TYPES.includes(file.type)) {
     return NextResponse.json({ error: "Invalid file type" }, { status: 400 });
   }

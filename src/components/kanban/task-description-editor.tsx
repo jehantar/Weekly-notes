@@ -73,6 +73,7 @@ export function TaskDescriptionEditor({ taskId, content, onSave }: TaskDescripti
       },
       handleKeyDown: (_view, event) => {
         if (event.key === "Escape") {
+          event.stopPropagation();
           editor?.commands.setContent(savedContentRef.current);
           (document.activeElement as HTMLElement)?.blur();
           return true;
