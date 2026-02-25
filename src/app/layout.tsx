@@ -4,7 +4,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Weekly Notes",
-  description: "Weekly meetings, action items, and notes tracker",
+  description: "Weekly meetings, tasks, and notes tracker",
   icons: {
     icon: "/favicon.png",
   },

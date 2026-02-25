@@ -4,7 +4,6 @@ import { addDays, format } from "date-fns";
 import { isDayToday } from "@/lib/utils/dates";
 import { DAY_LABELS } from "@/lib/constants";
 import { MeetingsCell } from "@/components/meetings/meetings-cell";
-import { ActionItemsCell } from "@/components/action-items/action-items-cell";
 import { NotesCell } from "@/components/notes/notes-cell";
 
 export function DayCard({
@@ -53,14 +52,6 @@ export function DayCard({
           Meetings
         </div>
         <MeetingsCell dayOfWeek={dayOfWeek} />
-      </div>
-
-      {/* Action Items Section */}
-      <div className="px-3 py-2 border-b" style={{ borderColor: 'var(--border-card)' }}>
-        <div className="text-[10px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: 'var(--text-placeholder)' }}>
-          Action Items
-        </div>
-        <ActionItemsCell dayOfWeek={dayOfWeek} />
       </div>
 
       {/* Notes Section */}

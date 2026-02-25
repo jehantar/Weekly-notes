@@ -4,8 +4,9 @@ import { createClient } from "@/lib/supabase/server";
 import { parseWeekStart, formatWeekStart, getMonday } from "@/lib/utils/dates";
 import { SupabaseProvider } from "@/components/providers/supabase-provider";
 import { WeekProvider, type WeekData } from "@/components/providers/week-provider";
+import { TasksProvider } from "@/components/providers/tasks-provider";
 import { WeekClient } from "./week-client";
-import type { Week, Meeting, ActionItem, Note } from "@/lib/types/database";
+import type { Week, Meeting, Note, Task } from "@/lib/types/database";
 
 export default async function WeekPage({
   params,
@@ -34,6 +35,21 @@ export default async function WeekPage({
     redirect("/login");
   }
 
+  // Fetch tasks (user-scoped, not week-scoped)
+  // Show active tasks + recently completed (last 14 days)
+  const fourteenDaysAgo = new Date();
+  fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+
+  const { data: tasksData } = await supabase
+    .from("tasks")
+    .select("*")
+    .eq("user_id", user.id)
+    .or(`status.neq.done,completed_at.gte.${fourteenDaysAgo.toISOString()}`)
+    .order("status")
+    .order("sort_order");
+
+  const initialTasks = (tasksData ?? []) as Task[];
+
   // Fetch the week
   const { data: weekData } = await supabase
     .from("weeks")
@@ -46,16 +62,9 @@ export default async function WeekPage({
   let initialData: WeekData;
 
   if (week) {
-    // Fetch all data for this week in parallel
-    const [meetingsRes, actionItemsRes, notesRes] = await Promise.all([
+    const [meetingsRes, notesRes] = await Promise.all([
       supabase
         .from("meetings")
-        .select("*")
-        .eq("week_id", week.id)
-        .order("day_of_week")
-        .order("sort_order"),
-      supabase
-        .from("action_items")
         .select("*")
         .eq("week_id", week.id)
         .order("day_of_week")
@@ -70,14 +79,12 @@ export default async function WeekPage({
     initialData = {
       week,
       meetings: (meetingsRes.data ?? []) as Meeting[],
-      actionItems: (actionItemsRes.data ?? []) as ActionItem[],
       notes: (notesRes.data ?? []) as Note[],
     };
   } else {
     initialData = {
       week: null,
       meetings: [],
-      actionItems: [],
       notes: [],
     };
   }
@@ -85,9 +92,11 @@ export default async function WeekPage({
   return (
     <SupabaseProvider>
       <WeekProvider initialData={initialData}>
-        <Suspense>
-          <WeekClient weekStart={weekStart} weekExists={!!week} />
-        </Suspense>
+        <TasksProvider initialTasks={initialTasks}>
+          <Suspense>
+            <WeekClient weekStart={weekStart} weekExists={!!week} />
+          </Suspense>
+        </TasksProvider>
       </WeekProvider>
     </SupabaseProvider>
   );

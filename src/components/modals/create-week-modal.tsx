@@ -1,13 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useSupabase } from "@/components/providers/supabase-provider";
 import { useWeek } from "@/components/providers/week-provider";
-import { parseWeekStart, addWeeks, formatWeekStart, formatDayHeader } from "@/lib/utils/dates";
+import { parseWeekStart, formatDayHeader } from "@/lib/utils/dates";
 import { DAYS_OF_WEEK, DAY_LABELS } from "@/lib/constants";
-import { CarryoverModal } from "./carryover-modal";
-import type { Week, Meeting, ActionItem } from "@/lib/types/database";
+import type { Week, Meeting } from "@/lib/types/database";
 
 type TemplateMeeting = {
   title: string;
@@ -24,15 +22,11 @@ export function CreateWeekModal({
 }) {
   const supabase = useSupabase();
   const { setWeekData } = useWeek();
-  const router = useRouter();
   const monday = parseWeekStart(weekStart);
 
-  const [step, setStep] = useState<"meetings" | "carryover">("meetings");
   const [templateMeetings, setTemplateMeetings] = useState<TemplateMeeting[]>(
     []
   );
-  const [prevWeekItems, setPrevWeekItems] = useState<ActionItem[]>([]);
-  const [prevWeekId, setPrevWeekId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
 
@@ -46,7 +40,6 @@ export function CreateWeekModal({
     } = await supabase.auth.getUser();
     if (!user) return;
 
-    // Find the most recent previous week
     const { data: prevWeekData } = await supabase
       .from("weeks")
       .select("*")
@@ -59,8 +52,6 @@ export function CreateWeekModal({
     const prevWeek = prevWeekData as Week | null;
 
     if (prevWeek) {
-      setPrevWeekId(prevWeek.id);
-      // Load meetings from previous week
       const { data: meetings } = await supabase
         .from("meetings")
         .select("*")
@@ -76,19 +67,6 @@ export function CreateWeekModal({
             included: true,
           }))
         );
-      }
-
-      // Load unchecked action items
-      const { data: items } = await supabase
-        .from("action_items")
-        .select("*")
-        .eq("week_id", prevWeek.id)
-        .eq("is_done", false)
-        .order("day_of_week")
-        .order("sort_order");
-
-      if (items) {
-        setPrevWeekItems(items as ActionItem[]);
       }
     }
     setLoading(false);
@@ -117,24 +95,13 @@ export function CreateWeekModal({
     ]);
   };
 
-  const handleConfirmMeetings = () => {
-    if (prevWeekItems.length > 0) {
-      setStep("carryover");
-    } else {
-      createWeek([]);
-    }
-  };
-
-  const createWeek = async (
-    carryoverItems: { content: string; priority: number; day_of_week: number; meeting_id: string | null }[]
-  ) => {
+  const createWeek = async () => {
     setCreating(true);
     const {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) return;
 
-    // Create the week
     const { data: newWeekData, error: weekError } = await supabase
       .from("weeks")
       .insert({ user_id: user.id, week_start: weekStart })
@@ -147,7 +114,6 @@ export function CreateWeekModal({
       return;
     }
 
-    // Create meetings
     const includedMeetings = templateMeetings.filter((m) => m.included);
     let insertedMeetings: Meeting[] = [];
     if (includedMeetings.length > 0) {
@@ -165,29 +131,9 @@ export function CreateWeekModal({
       insertedMeetings = (data ?? []) as Meeting[];
     }
 
-    // Create carryover action items
-    let insertedItems: ActionItem[] = [];
-    if (carryoverItems.length > 0) {
-      const { data } = await supabase
-        .from("action_items")
-        .insert(
-          carryoverItems.map((item, i) => ({
-            week_id: newWeek.id,
-            day_of_week: item.day_of_week,
-            content: item.content,
-            priority: item.priority,
-            sort_order: i,
-            meeting_id: null as string | null,
-          }))
-        )
-        .select();
-      insertedItems = (data ?? []) as ActionItem[];
-    }
-
     setWeekData({
       week: newWeek,
       meetings: insertedMeetings,
-      actionItems: insertedItems,
       notes: [],
     });
 
@@ -202,17 +148,6 @@ export function CreateWeekModal({
           <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Loading...</p>
         </div>
       </div>
-    );
-  }
-
-  if (step === "carryover") {
-    return (
-      <CarryoverModal
-        items={prevWeekItems}
-        onConfirm={(items) => createWeek(items)}
-        onBack={() => setStep("meetings")}
-        creating={creating}
-      />
     );
   }
 
@@ -236,7 +171,6 @@ export function CreateWeekModal({
           </p>
         )}
 
-        {/* Meetings by day */}
         <div className="grid grid-cols-5 gap-2 mb-4">
           {DAYS_OF_WEEK.map((day) => {
             const dayMeetings = templateMeetings
@@ -301,11 +235,11 @@ export function CreateWeekModal({
             Cancel
           </button>
           <button
-            onClick={handleConfirmMeetings}
+            onClick={createWeek}
             disabled={creating}
             className="px-4 py-1.5 bg-gray-900 text-white text-sm hover:bg-gray-800 disabled:opacity-50"
           >
-            {prevWeekItems.length > 0 ? "Next: Carryover" : "Create Week"}
+            Create Week
           </button>
         </div>
       </div>

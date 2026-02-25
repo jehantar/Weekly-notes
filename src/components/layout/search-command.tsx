@@ -9,14 +9,20 @@ import { format, parseISO } from "date-fns";
 type SearchResult = {
   item_type: string;
   item_id: string;
-  week_id: string;
-  week_start: string;
-  day_of_week: number;
+  week_id: string | null;
+  week_start: string | null;
+  day_of_week: number | null;
   content: string;
   rank: number;
 };
 
-export function SearchCommand({ onClose }: { onClose: () => void }) {
+export function SearchCommand({
+  onClose,
+  onNavigateToTasks,
+}: {
+  onClose: () => void;
+  onNavigateToTasks?: () => void;
+}) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -61,12 +67,21 @@ export function SearchCommand({ onClose }: { onClose: () => void }) {
   };
 
   const handleResultClick = (result: SearchResult) => {
-    router.push(`/week/${result.week_start}`);
-    onClose();
+    if (result.item_type === "task") {
+      onNavigateToTasks?.();
+      onClose();
+    } else if (result.week_start) {
+      router.push(`/week/${result.week_start}`);
+      onClose();
+    }
   };
 
-  const grouped = results.reduce<Record<string, SearchResult[]>>((acc, r) => {
-    const key = r.week_start;
+  // Separate tasks from week-grouped results
+  const taskResults = results.filter((r) => r.item_type === "task");
+  const weekResults = results.filter((r) => r.item_type !== "task");
+
+  const grouped = weekResults.reduce<Record<string, SearchResult[]>>((acc, r) => {
+    const key = r.week_start ?? "unknown";
     if (!acc[key]) acc[key] = [];
     acc[key].push(r);
     return acc;
@@ -109,6 +124,32 @@ export function SearchCommand({ onClose }: { onClose: () => void }) {
                 Searching...
               </div>
             )}
+
+            {/* Task results */}
+            {taskResults.length > 0 && (
+              <div>
+                <div className="px-4 py-1.5 text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-placeholder)', backgroundColor: 'var(--bg-page)' }}>
+                  Tasks
+                </div>
+                {taskResults.map((item) => (
+                  <button
+                    key={item.item_id}
+                    onClick={() => handleResultClick(item)}
+                    className="w-full text-left px-4 py-2 text-xs hover:bg-gray-50 transition-colors duration-100"
+                    style={{ borderBottom: '1px solid var(--border-card)' }}
+                  >
+                    <span className="mr-2" style={{ color: 'var(--text-placeholder)' }}>
+                      Task
+                    </span>
+                    <span style={{ color: 'var(--text-primary)' }}>
+                      {item.content.slice(0, 80)}{item.content.length > 80 ? "..." : ""}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Week-grouped results */}
             {Object.entries(grouped).map(([weekStart, items]) => (
               <div key={weekStart}>
                 <div className="px-4 py-1.5 text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-placeholder)', backgroundColor: 'var(--bg-page)' }}>
@@ -122,10 +163,10 @@ export function SearchCommand({ onClose }: { onClose: () => void }) {
                     style={{ borderBottom: '1px solid var(--border-card)' }}
                   >
                     <span className="mr-2" style={{ color: 'var(--text-placeholder)' }}>
-                      {item.item_type === "meeting" ? "Meeting" : item.item_type === "action_item" ? "Action" : "Note"}
+                      {item.item_type === "meeting" ? "Meeting" : "Note"}
                     </span>
                     <span className="mr-2" style={{ color: 'var(--text-placeholder)' }}>
-                      {DAY_LABELS[item.day_of_week - 1]}
+                      {item.day_of_week ? DAY_LABELS[item.day_of_week - 1] : ""}
                     </span>
                     <span style={{ color: 'var(--text-primary)' }}>
                       {item.content.slice(0, 80)}{item.content.length > 80 ? "..." : ""}
