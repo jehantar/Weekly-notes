@@ -173,7 +173,7 @@ export function TaskDetailPanel({ task, onClose }: TaskDetailPanelProps) {
             style={{ borderBottom: '1px solid var(--border-card)' }}
           >
             <span style={{ color: 'var(--text-secondary)' }}>Meeting</span>
-            <MeetingTagInput task={task} />
+            <MeetingTagInput task={task} alwaysVisible />
           </div>
         </div>
 
