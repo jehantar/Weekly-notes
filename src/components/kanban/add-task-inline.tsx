@@ -42,11 +42,10 @@ export function AddTaskInline({
 
   return (
     <div
-      className="p-2.5"
+      className="px-3 py-2"
       style={{
         backgroundColor: 'var(--bg-card)',
         border: '1px solid var(--accent-purple)',
-        boxShadow: 'var(--shadow-card)',
       }}
     >
       <input

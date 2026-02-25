@@ -1,19 +1,18 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
-/* Design tokens */
+/* Design tokens — Linear-inspired dark mode */
 :root {
-  --bg-page: #f8f7f5;
-  --bg-card: #ffffff;
-  --border-card: #e5e3df;
-  --accent-purple: #8b7ec8;
-  --text-primary: #1a1a1a;
-  --text-secondary: #6b6560;
-  --text-placeholder: #a8a29e;
-  --bg-column: #f5f4f1;
-  --shadow-card: 0 1px 2px 0 rgb(0 0 0 / 0.04);
-  --shadow-card-hover: 0 2px 8px 0 rgb(0 0 0 / 0.08);
-  --shadow-card-drag: 0 8px 24px -4px rgb(0 0 0 / 0.15), 0 2px 8px -2px rgb(0 0 0 / 0.08);
+  --bg-page: #0F0F11;
+  --bg-card: #1B1C1E;
+  --bg-column: #161618;
+  --bg-hover: #232428;
+  --border-card: #2A2B2E;
+  --accent-purple: #848CD0;
+  --text-primary: #ECECED;
+  --text-secondary: #8B8C90;
+  --text-placeholder: #4E4F54;
+  --shadow-card-drag: 0 8px 24px -4px rgb(0 0 0 / 0.4);
 }
 
 /* TipTap editor styles for notes */
@@ -61,7 +60,7 @@
 /* Placeholder styling */
 .tiptap-notes p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
-  color: #d1d5db;
+  color: var(--text-placeholder);
   float: left;
   height: 0;
   pointer-events: none;
