@@ -17,6 +17,7 @@ import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { KanbanColumn } from "./kanban-column";
 import { useTasks } from "@/components/providers/tasks-provider";
 import { TASK_STATUSES, PRIORITY_DOT_COLORS, safePriority } from "@/lib/constants";
+import { TaskDetailPanel } from "./task-detail-panel";
 import type { Task, TaskStatus } from "@/lib/types/database";
 
 function DragOverlayCard({ task }: { task: Task }) {
@@ -281,95 +282,42 @@ export function KanbanBoard() {
   const selectedTask = selectedTaskId ? tasks.find((t) => t.id === selectedTaskId) : null;
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCorners}
-      onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
-      onDragEnd={handleDragEnd}
-    >
-      <div className="flex gap-0.5 h-full">
-        {TASK_STATUSES.map((status) => (
-          <KanbanColumn
-            key={status}
-            status={status}
-            tasks={getColumnTasks(status)}
-            isOver={overColumn === status}
-            focusedTaskId={focusedTaskId}
-            onSelectTask={setSelectedTaskId}
-            {...(status === "done" ? {
-              isCollapsed: doneCollapsed,
-              onToggleCollapse: () => setDoneCollapsed((c) => !c),
-            } : {})}
-          />
-        ))}
-      </div>
-
-      <DragOverlay dropAnimation={dropAnimationConfig}>
-        {activeTask ? <DragOverlayCard task={activeTask} /> : null}
-      </DragOverlay>
-
-      {/* Task detail panel — placeholder, will be built in Task 7 */}
-      {selectedTask && (
-        <div
-          className="fixed top-0 right-0 h-full z-50 flex"
-          onClick={() => setSelectedTaskId(null)}
-        >
-          <div
-            className="w-[400px] h-full overflow-y-auto p-6"
-            style={{
-              backgroundColor: 'var(--bg-card)',
-              borderLeft: '1px solid var(--border-card)',
-              animation: 'fadeSlideIn 100ms ease-out',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h2
-                className="text-base font-semibold"
-                style={{ color: 'var(--text-primary)' }}
-              >
-                {selectedTask.content}
-              </h2>
-              <button
-                onClick={() => setSelectedTaskId(null)}
-                className="text-sm"
-                style={{ color: 'var(--text-placeholder)' }}
-              >
-                &times;
-              </button>
-            </div>
-            <div className="space-y-4 text-xs" style={{ color: 'var(--text-secondary)' }}>
-              <div className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid var(--border-card)' }}>
-                <span>Status</span>
-                <span style={{ color: 'var(--text-primary)' }}>{selectedTask.status}</span>
-              </div>
-              <div className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid var(--border-card)' }}>
-                <span>Priority</span>
-                <span style={{ color: 'var(--text-primary)' }}>{["Low", "Medium", "High"][safePriority(selectedTask.priority)]}</span>
-              </div>
-              {selectedTask.meeting_title && (
-                <div className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid var(--border-card)' }}>
-                  <span>Meeting</span>
-                  <span style={{ color: 'var(--accent-purple)' }}>#{selectedTask.meeting_title}</span>
-                </div>
-              )}
-              {selectedTask.created_at && (
-                <div className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid var(--border-card)' }}>
-                  <span>Created</span>
-                  <span style={{ color: 'var(--text-primary)' }}>{new Date(selectedTask.created_at).toLocaleDateString()}</span>
-                </div>
-              )}
-              {selectedTask.completed_at && (
-                <div className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid var(--border-card)' }}>
-                  <span>Completed</span>
-                  <span style={{ color: 'var(--text-primary)' }}>{new Date(selectedTask.completed_at).toLocaleDateString()}</span>
-                </div>
-              )}
-            </div>
-          </div>
+    <>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCorners}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="flex gap-0.5 h-full">
+          {TASK_STATUSES.map((status) => (
+            <KanbanColumn
+              key={status}
+              status={status}
+              tasks={getColumnTasks(status)}
+              isOver={overColumn === status}
+              focusedTaskId={focusedTaskId}
+              onSelectTask={setSelectedTaskId}
+              {...(status === "done" ? {
+                isCollapsed: doneCollapsed,
+                onToggleCollapse: () => setDoneCollapsed((c) => !c),
+              } : {})}
+            />
+          ))}
         </div>
+
+        <DragOverlay dropAnimation={dropAnimationConfig}>
+          {activeTask ? <DragOverlayCard task={activeTask} /> : null}
+        </DragOverlay>
+      </DndContext>
+
+      {selectedTask && (
+        <TaskDetailPanel
+          task={selectedTask}
+          onClose={() => setSelectedTaskId(null)}
+        />
       )}
-    </DndContext>
+    </>
   );
 }
