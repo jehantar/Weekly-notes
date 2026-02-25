@@ -106,6 +106,7 @@ export interface Database {
           status: TaskStatus;
           priority: number;
           sort_order: number;
+          description: string | null;
           meeting_id: string | null;
           meeting_title: string | null;
           meeting_week_start: string | null;
@@ -120,6 +121,7 @@ export interface Database {
           status?: TaskStatus;
           priority?: number;
           sort_order?: number;
+          description?: string | null;
           meeting_id?: string | null;
           meeting_title?: string | null;
           meeting_week_start?: string | null;
@@ -134,6 +136,7 @@ export interface Database {
           status?: TaskStatus;
           priority?: number;
           sort_order?: number;
+          description?: string | null;
           meeting_id?: string | null;
           meeting_title?: string | null;
           meeting_week_start?: string | null;

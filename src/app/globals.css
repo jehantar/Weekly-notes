@@ -66,6 +66,74 @@
   pointer-events: none;
 }
 
+/* TipTap editor styles for task descriptions */
+.tiptap-description {
+  font-size: 0.8125rem;
+  line-height: 1.375rem;
+}
+
+.tiptap-description p {
+  margin: 0 0 0.25em 0;
+}
+
+.tiptap-description ul,
+.tiptap-description ol {
+  padding-left: 1.2em;
+  margin: 0.2em 0;
+}
+
+.tiptap-description ul {
+  list-style-type: disc;
+}
+
+.tiptap-description ol {
+  list-style-type: decimal;
+}
+
+.tiptap-description ul ul,
+.tiptap-description ol ul {
+  list-style-type: circle;
+}
+
+.tiptap-description ul ul ul,
+.tiptap-description ol ol ul {
+  list-style-type: square;
+}
+
+.tiptap-description li {
+  margin: 0;
+}
+
+.tiptap-description li p {
+  margin: 0;
+}
+
+.tiptap-description a {
+  color: var(--accent-purple);
+  text-decoration: underline;
+}
+
+.tiptap-description img {
+  max-width: 100%;
+  border-radius: 2px;
+  margin: 0.5em 0;
+}
+
+.tiptap-description blockquote {
+  border-left: 2px solid var(--border-card);
+  padding-left: 0.75em;
+  margin: 0.5em 0;
+  color: var(--text-secondary);
+}
+
+.tiptap-description p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--text-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
 @keyframes fadeSlideIn {
   from { opacity: 0; transform: translateY(-8px); }
   to { opacity: 1; transform: translateY(0); }
