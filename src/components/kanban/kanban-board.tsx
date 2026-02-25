@@ -72,6 +72,7 @@ export function KanbanBoard() {
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [overColumn, setOverColumn] = useState<string | null>(null);
   const [focusedTaskId, setFocusedTaskId] = useState<string | null>(null);
+  const [doneCollapsed, setDoneCollapsed] = useState(true);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -284,6 +285,10 @@ export function KanbanBoard() {
             tasks={getColumnTasks(status)}
             isOver={overColumn === status}
             focusedTaskId={focusedTaskId}
+            {...(status === "done" ? {
+              isCollapsed: doneCollapsed,
+              onToggleCollapse: () => setDoneCollapsed((c) => !c),
+            } : {})}
           />
         ))}
       </div>

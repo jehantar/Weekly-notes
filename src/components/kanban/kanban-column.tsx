@@ -6,7 +6,7 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { KanbanCard } from "./kanban-card";
 import { AddTaskInline } from "./add-task-inline";
 import type { Task, TaskStatus } from "@/lib/types/database";
-import { TASK_STATUS_LABELS } from "@/lib/constants";
+import { TASK_STATUS_LABELS, STATUS_ACCENT_COLORS } from "@/lib/constants";
 import { useTasks } from "@/components/providers/tasks-provider";
 
 export function KanbanColumn({
@@ -14,11 +14,15 @@ export function KanbanColumn({
   tasks,
   isOver,
   focusedTaskId,
+  isCollapsed,
+  onToggleCollapse,
 }: {
   status: TaskStatus;
   tasks: Task[];
   isOver: boolean;
   focusedTaskId?: string | null;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }) {
   const [adding, setAdding] = useState(false);
   const { clearCompleted } = useTasks();
@@ -27,7 +31,53 @@ export function KanbanColumn({
 
   const sortedTasks = [...tasks].sort((a, b) => a.sort_order - b.sort_order);
   const taskIds = sortedTasks.map((t) => t.id);
+  const accentColor = STATUS_ACCENT_COLORS[status];
 
+  // Collapsed view — narrow vertical strip, still a valid drop target
+  if (isCollapsed) {
+    return (
+      <div
+        ref={setNodeRef}
+        onClick={onToggleCollapse}
+        className="flex flex-col items-center cursor-pointer select-none"
+        style={{
+          width: '36px',
+          minWidth: '36px',
+          backgroundColor: isOver
+            ? 'color-mix(in srgb, var(--accent-purple) 8%, var(--bg-column))'
+            : 'var(--bg-column)',
+          borderTop: `2px solid ${accentColor}`,
+          boxShadow: isOver
+            ? 'inset 0 0 0 2px color-mix(in srgb, var(--accent-purple) 30%, transparent)'
+            : 'none',
+          transition: 'background-color 150ms, box-shadow 150ms',
+        }}
+      >
+        <div className="pt-3 pb-2">
+          <span
+            className="text-[10px] font-bold px-1 py-0.5"
+            style={{
+              color: 'var(--bg-card)',
+              backgroundColor: accentColor,
+            }}
+          >
+            {tasks.length}
+          </span>
+        </div>
+        <div
+          className="text-[11px] font-bold uppercase tracking-widest"
+          style={{
+            color: 'var(--text-secondary)',
+            writingMode: 'vertical-rl',
+          }}
+        >
+          {TASK_STATUS_LABELS[status]}
+        </div>
+      </div>
+    );
+  }
+
+  // Expanded view
   return (
     <div
       ref={setNodeRef}
@@ -36,6 +86,7 @@ export function KanbanColumn({
         backgroundColor: isOver
           ? 'color-mix(in srgb, var(--accent-purple) 8%, var(--bg-column))'
           : 'var(--bg-column)',
+        borderTop: `2px solid ${accentColor}`,
         boxShadow: isOver
           ? 'inset 0 0 0 2px color-mix(in srgb, var(--accent-purple) 30%, transparent)'
           : 'none',
@@ -54,22 +105,34 @@ export function KanbanColumn({
           <span
             className="text-[10px] px-1.5 py-0.5"
             style={{
-              color: 'var(--text-secondary)',
-              backgroundColor: 'color-mix(in srgb, var(--text-secondary) 10%, transparent)',
+              color: accentColor,
+              backgroundColor: `color-mix(in srgb, ${accentColor} 12%, transparent)`,
             }}
           >
             {tasks.length}
           </span>
         </div>
-        {status === "done" && tasks.length > 0 && (
-          <button
-            onClick={clearCompleted}
-            className="text-[10px] transition-colors hover:underline"
-            style={{ color: 'var(--text-placeholder)' }}
-          >
-            Clear
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {status === "done" && tasks.length > 0 && (
+            <button
+              onClick={clearCompleted}
+              className="text-[10px] transition-colors hover:underline"
+              style={{ color: 'var(--text-placeholder)' }}
+            >
+              Clear
+            </button>
+          )}
+          {onToggleCollapse && (
+            <button
+              onClick={onToggleCollapse}
+              className="text-[11px] transition-opacity opacity-0 group-hover/col:opacity-100"
+              style={{ color: 'var(--text-placeholder)' }}
+              title="Collapse column"
+            >
+              &laquo;
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Cards list */}
@@ -89,8 +152,11 @@ export function KanbanColumn({
 
         {sortedTasks.length === 0 && !adding && (
           <div
-            className="py-8 text-center text-[11px]"
-            style={{ color: 'var(--text-placeholder)' }}
+            className="py-6 mx-1 flex items-center justify-center text-[11px]"
+            style={{
+              color: 'var(--text-placeholder)',
+              border: '1px dashed var(--border-card)',
+            }}
           >
             No tasks
           </div>

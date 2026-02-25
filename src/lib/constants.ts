@@ -22,6 +22,12 @@ export const TASK_STATUS_LABELS: Record<(typeof TASK_STATUSES)[number], string> 
   in_progress: "In Progress",
   done: "Done",
 };
+export const STATUS_ACCENT_COLORS: Record<(typeof TASK_STATUSES)[number], string> = {
+  backlog: "#b8b5b0",
+  todo: "#8b9eb5",
+  in_progress: "var(--accent-purple)",
+  done: "#8baa8b",
+};
 
 export const AUTOSAVE_DELAY = 1000;
 export const SEARCH_DEBOUNCE = 300;
