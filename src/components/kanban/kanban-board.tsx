@@ -99,10 +99,17 @@ export function KanbanBoard() {
 
       if (isInput) return;
 
-      if (e.key === "Tab" && focusedTaskId) {
-        e.preventDefault();
+      if (e.key === "Tab") {
         if (allTaskIds.length === 0) return;
 
+        if (!focusedTaskId) {
+          // Bootstrap: first Tab press focuses the first task
+          e.preventDefault();
+          setFocusedTaskId(allTaskIds[0]);
+          return;
+        }
+
+        e.preventDefault();
         const currentIndex = allTaskIds.indexOf(focusedTaskId);
         if (e.shiftKey) {
           const prevIndex = currentIndex <= 0 ? allTaskIds.length - 1 : currentIndex - 1;

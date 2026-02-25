@@ -38,7 +38,7 @@ export function KanbanCard({
 
   const isDone = task.status === "done";
 
-  const style = {
+  const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition: [transition, 'background-color 100ms ease-out, opacity 100ms ease-out'].filter(Boolean).join(', '),
     ...(isDragging
@@ -49,7 +49,6 @@ export function KanbanCard({
         }
       : {
           opacity: 1,
-          backgroundColor: 'transparent',
           borderBottom: '1px solid var(--border-card)',
         }),
     ...(isFocused && !isDragging && {
