@@ -43,6 +43,8 @@ export function MeetingTagInput({ task, alwaysVisible }: { task: Task; alwaysVis
 
   const handleUnlink = () => {
     linkMeeting(task.id, null, null, null);
+    setOpen(false);
+    setFilter("");
   };
 
   // Show existing tag (clickable to change) or add button
@@ -83,7 +85,7 @@ export function MeetingTagInput({ task, alwaysVisible }: { task: Task; alwaysVis
           className={`text-[10px] transition-opacity ${alwaysVisible ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
           style={{ color: 'var(--text-placeholder)' }}
         >
-          + Add meeting
+          {alwaysVisible ? '+ Add meeting' : '#'}
         </button>
       )}
 
