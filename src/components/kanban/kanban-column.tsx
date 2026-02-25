@@ -13,10 +13,12 @@ export function KanbanColumn({
   status,
   tasks,
   isOver,
+  focusedTaskId,
 }: {
   status: TaskStatus;
   tasks: Task[];
   isOver: boolean;
+  focusedTaskId?: string | null;
 }) {
   const [adding, setAdding] = useState(false);
   const { clearCompleted } = useTasks();
@@ -29,32 +31,32 @@ export function KanbanColumn({
   return (
     <div
       ref={setNodeRef}
-      className="flex flex-col min-w-0 flex-1 overflow-hidden"
+      className="group/col flex flex-col min-w-0 flex-1 overflow-hidden"
       style={{
         backgroundColor: isOver
-          ? 'color-mix(in srgb, var(--accent-purple) 5%, var(--bg-card))'
-          : 'var(--bg-card)',
-        border: isOver
-          ? '1px dashed var(--accent-purple)'
-          : '1px solid var(--border-card)',
-        transition: 'background-color 150ms, border-color 150ms',
+          ? 'color-mix(in srgb, var(--accent-purple) 8%, var(--bg-column))'
+          : 'var(--bg-column)',
+        boxShadow: isOver
+          ? 'inset 0 0 0 2px color-mix(in srgb, var(--accent-purple) 30%, transparent)'
+          : 'none',
+        transition: 'background-color 150ms, box-shadow 150ms',
       }}
     >
       {/* Column header */}
-      <div
-        className="px-3 py-2 flex items-center justify-between"
-        style={{ borderBottom: '1px solid var(--border-card)' }}
-      >
+      <div className="px-3 pt-3 pb-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span
-            className="text-[10px] font-semibold uppercase tracking-widest"
-            style={{ color: 'var(--text-placeholder)' }}
+            className="text-[11px] font-bold uppercase tracking-widest"
+            style={{ color: 'var(--text-secondary)' }}
           >
             {TASK_STATUS_LABELS[status]}
           </span>
           <span
-            className="text-[10px]"
-            style={{ color: 'var(--text-placeholder)' }}
+            className="text-[10px] px-1.5 py-0.5"
+            style={{
+              color: 'var(--text-secondary)',
+              backgroundColor: 'color-mix(in srgb, var(--text-secondary) 10%, transparent)',
+            }}
           >
             {tasks.length}
           </span>
@@ -71,12 +73,28 @@ export function KanbanColumn({
       </div>
 
       {/* Cards list */}
-      <div className="flex-1 overflow-y-auto p-2 space-y-2" style={{ maxHeight: 'calc(75vh - 40px)' }}>
+      <div
+        className="flex-1 overflow-y-auto px-2 pb-2 space-y-1.5"
+        style={{ maxHeight: 'calc(100vh - 160px)' }}
+      >
         <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
           {sortedTasks.map((task) => (
-            <KanbanCard key={task.id} task={task} />
+            <KanbanCard
+              key={task.id}
+              task={task}
+              isFocused={focusedTaskId === task.id}
+            />
           ))}
         </SortableContext>
+
+        {sortedTasks.length === 0 && !adding && (
+          <div
+            className="py-8 text-center text-[11px]"
+            style={{ color: 'var(--text-placeholder)' }}
+          >
+            No tasks
+          </div>
+        )}
 
         {adding && (
           <AddTaskInline status={status} onDone={() => setAdding(false)} />
@@ -87,13 +105,11 @@ export function KanbanColumn({
       {!adding && (
         <button
           onClick={() => setAdding(true)}
-          className="w-full px-3 py-1.5 text-xs text-left transition-colors group/add"
-          style={{
-            borderTop: '1px solid var(--border-card)',
-            color: 'var(--text-placeholder)',
-          }}
+          className="w-full px-3 py-2 text-xs text-left transition-opacity"
+          style={{ color: 'var(--text-placeholder)' }}
+          {...(status === "backlog" ? { "data-add-backlog": true } : {})}
         >
-          <span className="opacity-0 group-hover/add:opacity-100 transition-opacity">
+          <span className="opacity-0 group-hover/col:opacity-100 transition-opacity">
             + Add task
           </span>
         </button>

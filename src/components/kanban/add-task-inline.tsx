@@ -42,10 +42,11 @@ export function AddTaskInline({
 
   return (
     <div
-      className="p-2"
+      className="p-2.5"
       style={{
         backgroundColor: 'var(--bg-card)',
         border: '1px solid var(--accent-purple)',
+        boxShadow: 'var(--shadow-card)',
       }}
     >
       <input
@@ -55,7 +56,7 @@ export function AddTaskInline({
         onChange={(e) => setContent(e.target.value)}
         onKeyDown={handleKeyDown}
         onBlur={handleSubmit}
-        placeholder="Task description..."
+        placeholder="What needs to be done?"
         className="w-full text-xs bg-transparent outline-none"
         style={{ color: 'var(--text-primary)' }}
       />

@@ -1,6 +1,19 @@
 export const DAYS_OF_WEEK = [1, 2, 3, 4, 5] as const;
 export const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri"] as const;
 export const PRIORITY_LABELS = ["Low", "Medium", "High"] as const;
+export const PRIORITY_DOT_COLORS = [
+  "var(--text-placeholder)", // 0 = low (gray)
+  "#d97706",                  // 1 = medium (amber)
+  "#dc2626",                  // 2 = high (red)
+] as const;
+export const PRIORITY_STRIPE_COLORS = [
+  "transparent",  // 0 = low
+  "#d97706",      // 1 = medium (amber)
+  "#dc2626",      // 2 = high (red)
+] as const;
+export function safePriority(p: number): 0 | 1 | 2 {
+  return Math.min(Math.max(p, 0), 2) as 0 | 1 | 2;
+}
 
 export const TASK_STATUSES = ["backlog", "todo", "in_progress", "done"] as const;
 export const TASK_STATUS_LABELS: Record<(typeof TASK_STATUSES)[number], string> = {
