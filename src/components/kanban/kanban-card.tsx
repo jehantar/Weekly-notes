@@ -6,7 +6,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { useTasks } from "@/components/providers/tasks-provider";
 import { MeetingTagInput } from "./meeting-tag-input";
 import type { Task } from "@/lib/types/database";
-import { PRIORITY_LABELS, PRIORITY_DOT_COLORS, PRIORITY_STRIPE_COLORS, safePriority } from "@/lib/constants";
+import { PRIORITY_LABELS, PRIORITY_DOT_COLORS, safePriority } from "@/lib/constants";
 
 const animateLayoutChanges: AnimateLayoutChanges = (args) =>
   defaultAnimateLayoutChanges({ ...args, wasDragging: true });
@@ -14,14 +14,15 @@ const animateLayoutChanges: AnimateLayoutChanges = (args) =>
 export function KanbanCard({
   task,
   isFocused,
+  onSelectTask,
 }: {
   task: Task;
   isFocused?: boolean;
+  onSelectTask?: (taskId: string) => void;
 }) {
   const { updateTask, deleteTask } = useTasks();
   const [editing, setEditing] = useState(false);
   const [editContent, setEditContent] = useState(task.content);
-  const [isHovered, setIsHovered] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const priority = safePriority(task.priority);
@@ -37,34 +38,22 @@ export function KanbanCard({
 
   const isDone = task.status === "done";
 
-  const style = {
+  const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
-    transition: [transition, 'box-shadow 150ms', 'border-color 150ms', 'opacity 150ms'].filter(Boolean).join(', '),
+    transition: [transition, 'background-color 100ms ease-out, opacity 100ms ease-out'].filter(Boolean).join(', '),
     ...(isDragging
       ? {
           opacity: 0.3,
           backgroundColor: 'var(--bg-column)',
           border: '1px dashed var(--border-card)',
-          boxShadow: 'none',
         }
       : {
           opacity: 1,
-          backgroundColor: 'var(--bg-card)',
-          borderLeft: `3px solid ${PRIORITY_STRIPE_COLORS[priority]}`,
-          borderTop: '1px solid var(--border-card)',
-          borderRight: '1px solid var(--border-card)',
           borderBottom: '1px solid var(--border-card)',
-          boxShadow: isHovered
-            ? 'var(--shadow-card-hover)'
-            : 'var(--shadow-card)',
         }),
     ...(isFocused && !isDragging && {
-      outline: '2px solid var(--accent-purple)',
-      outlineOffset: '-2px',
-    }),
-    ...(isHovered && !isDragging && {
-      borderColor: 'var(--accent-purple)',
-      borderLeft: `3px solid ${priority > 0 ? PRIORITY_STRIPE_COLORS[priority] : 'var(--accent-purple)'}`,
+      outline: '1px solid var(--accent-purple)',
+      outlineOffset: '-1px',
     }),
   };
 
@@ -72,7 +61,6 @@ export function KanbanCard({
     if (editing) inputRef.current?.focus();
   }, [editing]);
 
-  // Sync editContent when task content changes externally
   useEffect(() => {
     if (!editing) {
       setEditContent(task.content);
@@ -105,31 +93,24 @@ export function KanbanCard({
     updateTask(task.id, { priority: next });
   };
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Only open detail panel if clicking the card body (not text, dot, or delete)
+    if (onSelectTask) {
+      onSelectTask(task.id);
+    }
+  };
+
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className="group flex items-start gap-2 p-2.5 cursor-grab active:cursor-grabbing"
+      className="group flex items-center gap-2 px-3 py-2 cursor-grab active:cursor-grabbing hover:bg-[var(--bg-hover)]"
       data-task-id={task.id}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onClick={handleCardClick}
       {...attributes}
       {...listeners}
     >
-      {/* Priority dot */}
-      <button
-        onClick={cyclePriority}
-        className="shrink-0 mt-0.5"
-        title={PRIORITY_LABELS[priority]}
-        onPointerDown={(e) => e.stopPropagation()}
-      >
-        <div
-          className="w-2 h-2 rounded-full"
-          style={{ backgroundColor: PRIORITY_DOT_COLORS[priority] }}
-        />
-      </button>
-
-      {/* Content */}
+      {/* Content — takes available space */}
       <div className="flex-1 min-w-0">
         {editing ? (
           <input
@@ -142,13 +123,14 @@ export function KanbanCard({
             className="w-full text-xs bg-transparent outline-none pb-0.5"
             style={{
               color: 'var(--text-primary)',
-              borderBottom: '2px solid var(--accent-purple)',
+              borderBottom: '1px solid var(--accent-purple)',
             }}
             onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
           />
         ) : (
           <div
-            className="text-xs cursor-text"
+            className="text-xs truncate cursor-text"
             data-task-text
             style={{
               color: isDone ? 'var(--text-placeholder)' : 'var(--text-primary)',
@@ -163,26 +145,45 @@ export function KanbanCard({
             {task.content}
           </div>
         )}
-
-        {/* Meeting tag */}
-        <MeetingTagInput task={task} />
       </div>
 
-      {/* Delete button (hover reveal) */}
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          deleteTask(task.id);
-        }}
-        onPointerDown={(e) => e.stopPropagation()}
-        className="shrink-0 w-4 h-4 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all text-xs leading-none"
-        style={{ color: 'var(--text-placeholder)' }}
-        onMouseEnter={(e) => (e.currentTarget.style.color = '#dc2626')}
-        onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-placeholder)')}
-        title="Delete task"
-      >
-        &times;
-      </button>
+      {/* Right-aligned metadata: meeting tag, priority dot, delete */}
+      <div className="flex items-center gap-1.5 shrink-0">
+        {/* Meeting tag — inline compact */}
+        <MeetingTagInput task={task} />
+
+        {/* Priority dot */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            cyclePriority();
+          }}
+          className="shrink-0"
+          title={PRIORITY_LABELS[priority]}
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          <div
+            className="w-1.5 h-1.5 rounded-full"
+            style={{ backgroundColor: PRIORITY_DOT_COLORS[priority] }}
+          />
+        </button>
+
+        {/* Delete button (hover reveal) */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            deleteTask(task.id);
+          }}
+          onPointerDown={(e) => e.stopPropagation()}
+          className="shrink-0 w-4 h-4 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-[10px] leading-none"
+          style={{ color: 'var(--text-placeholder)' }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = '#dc2626')}
+          onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-placeholder)')}
+          title="Delete task"
+        >
+          &times;
+        </button>
+      </div>
     </div>
   );
 }

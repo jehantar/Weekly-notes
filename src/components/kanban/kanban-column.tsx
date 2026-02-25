@@ -6,7 +6,7 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { KanbanCard } from "./kanban-card";
 import { AddTaskInline } from "./add-task-inline";
 import type { Task, TaskStatus } from "@/lib/types/database";
-import { TASK_STATUS_LABELS, STATUS_ACCENT_COLORS } from "@/lib/constants";
+import { TASK_STATUS_LABELS, STATUS_DOT_COLORS } from "@/lib/constants";
 import { useTasks } from "@/components/providers/tasks-provider";
 
 export function KanbanColumn({
@@ -16,6 +16,7 @@ export function KanbanColumn({
   focusedTaskId,
   isCollapsed,
   onToggleCollapse,
+  onSelectTask,
 }: {
   status: TaskStatus;
   tasks: Task[];
@@ -23,6 +24,7 @@ export function KanbanColumn({
   focusedTaskId?: string | null;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
+  onSelectTask?: (taskId: string) => void;
 }) {
   const [adding, setAdding] = useState(false);
   const { clearCompleted } = useTasks();
@@ -31,9 +33,9 @@ export function KanbanColumn({
 
   const sortedTasks = [...tasks].sort((a, b) => a.sort_order - b.sort_order);
   const taskIds = sortedTasks.map((t) => t.id);
-  const accentColor = STATUS_ACCENT_COLORS[status];
+  const dotColor = STATUS_DOT_COLORS[status];
 
-  // Collapsed view — narrow vertical strip, still a valid drop target
+  // Collapsed view
   if (isCollapsed) {
     return (
       <div
@@ -44,30 +46,26 @@ export function KanbanColumn({
           width: '36px',
           minWidth: '36px',
           backgroundColor: isOver
-            ? 'color-mix(in srgb, var(--accent-purple) 8%, var(--bg-column))'
+            ? 'color-mix(in srgb, var(--accent-purple) 6%, var(--bg-column))'
             : 'var(--bg-column)',
-          borderTop: `2px solid ${accentColor}`,
           boxShadow: isOver
-            ? 'inset 0 0 0 2px color-mix(in srgb, var(--accent-purple) 30%, transparent)'
+            ? 'inset 0 0 0 1px color-mix(in srgb, var(--accent-purple) 30%, transparent)'
             : 'none',
-          transition: 'background-color 150ms, box-shadow 150ms',
+          transition: 'background-color 100ms ease-out, box-shadow 100ms ease-out',
         }}
       >
         <div className="pt-3 pb-2">
           <span
-            className="text-[10px] font-bold px-1 py-0.5"
-            style={{
-              color: 'var(--bg-card)',
-              backgroundColor: accentColor,
-            }}
+            className="text-[10px] font-medium"
+            style={{ color: 'var(--text-secondary)' }}
           >
             {tasks.length}
           </span>
         </div>
         <div
-          className="text-[11px] font-bold uppercase tracking-widest"
+          className="text-[11px] font-medium uppercase tracking-widest"
           style={{
-            color: 'var(--text-secondary)',
+            color: 'var(--text-placeholder)',
             writingMode: 'vertical-rl',
           }}
         >
@@ -84,30 +82,30 @@ export function KanbanColumn({
       className="group/col flex flex-col min-w-0 flex-1 overflow-hidden"
       style={{
         backgroundColor: isOver
-          ? 'color-mix(in srgb, var(--accent-purple) 8%, var(--bg-column))'
+          ? 'color-mix(in srgb, var(--accent-purple) 6%, var(--bg-column))'
           : 'var(--bg-column)',
-        borderTop: `2px solid ${accentColor}`,
         boxShadow: isOver
-          ? 'inset 0 0 0 2px color-mix(in srgb, var(--accent-purple) 30%, transparent)'
+          ? 'inset 0 0 0 1px color-mix(in srgb, var(--accent-purple) 30%, transparent)'
           : 'none',
-        transition: 'background-color 150ms, box-shadow 150ms',
+        transition: 'background-color 100ms ease-out, box-shadow 100ms ease-out',
       }}
     >
       {/* Column header */}
       <div className="px-3 pt-3 pb-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
+          <div
+            className="w-2 h-2 rounded-full shrink-0"
+            style={{ backgroundColor: dotColor }}
+          />
           <span
-            className="text-[11px] font-bold uppercase tracking-widest"
+            className="text-xs font-medium"
             style={{ color: 'var(--text-secondary)' }}
           >
             {TASK_STATUS_LABELS[status]}
           </span>
           <span
-            className="text-[10px] px-1.5 py-0.5"
-            style={{
-              color: accentColor,
-              backgroundColor: `color-mix(in srgb, ${accentColor} 12%, transparent)`,
-            }}
+            className="text-[11px]"
+            style={{ color: 'var(--text-placeholder)' }}
           >
             {tasks.length}
           </span>
@@ -137,7 +135,7 @@ export function KanbanColumn({
 
       {/* Cards list */}
       <div
-        className="flex-1 overflow-y-auto px-2 pb-2 space-y-1.5"
+        className="flex-1 overflow-y-auto px-1.5 pb-2 space-y-px"
         style={{ maxHeight: 'calc(100vh - 160px)' }}
       >
         <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
@@ -146,6 +144,7 @@ export function KanbanColumn({
               key={task.id}
               task={task}
               isFocused={focusedTaskId === task.id}
+              onSelectTask={onSelectTask}
             />
           ))}
         </SortableContext>

@@ -6,11 +6,6 @@ export const PRIORITY_DOT_COLORS = [
   "#d97706",                  // 1 = medium (amber)
   "#dc2626",                  // 2 = high (red)
 ] as const;
-export const PRIORITY_STRIPE_COLORS = [
-  "transparent",  // 0 = low
-  "#d97706",      // 1 = medium (amber)
-  "#dc2626",      // 2 = high (red)
-] as const;
 export function safePriority(p: number): 0 | 1 | 2 {
   return Math.min(Math.max(p, 0), 2) as 0 | 1 | 2;
 }
@@ -22,10 +17,10 @@ export const TASK_STATUS_LABELS: Record<(typeof TASK_STATUSES)[number], string> 
   in_progress: "In Progress",
   done: "Done",
 };
-export const STATUS_ACCENT_COLORS: Record<(typeof TASK_STATUSES)[number], string> = {
-  backlog: "#b8b5b0",
+export const STATUS_DOT_COLORS: Record<(typeof TASK_STATUSES)[number], string> = {
+  backlog: "#8B8C90",
   todo: "#8b9eb5",
-  in_progress: "var(--accent-purple)",
+  in_progress: "#848CD0",
   done: "#8baa8b",
 };
 

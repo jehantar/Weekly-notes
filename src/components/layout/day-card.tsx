@@ -22,14 +22,10 @@ export function DayCard({
 
   return (
     <div
-      className="flex flex-col min-w-0 flex-1 border overflow-y-auto transition-all duration-200 group"
+      className="flex flex-col min-w-0 flex-1 overflow-y-auto transition-all duration-200 group"
       style={{
         backgroundColor: 'var(--bg-card)',
-        borderColor: isToday ? 'var(--accent-purple)' : 'var(--border-card)',
-        borderTopWidth: isToday ? '2px' : '1px',
-        boxShadow: isToday
-          ? '0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07)'
-          : '0 1px 2px 0 rgb(0 0 0 / 0.03)',
+        border: `1px solid ${isToday ? 'var(--accent-purple)' : 'var(--border-card)'}`,
         maxHeight: '75vh',
       }}
     >

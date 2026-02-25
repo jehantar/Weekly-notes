@@ -19,7 +19,7 @@ export default function RootLayout({
     <html lang="en">
       <body
         className="text-sm antialiased"
-        style={{ fontFamily: "'JetBrains Mono', monospace", backgroundColor: 'var(--bg-page)', color: 'var(--text-primary)' }}
+        style={{ fontFamily: "'Inter', sans-serif", backgroundColor: 'var(--bg-page)', color: 'var(--text-primary)' }}
       >
         {children}
         <Toaster position="bottom-center" />

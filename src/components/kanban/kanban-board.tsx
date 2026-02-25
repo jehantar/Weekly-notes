@@ -16,47 +16,42 @@ import {
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { KanbanColumn } from "./kanban-column";
 import { useTasks } from "@/components/providers/tasks-provider";
-import { TASK_STATUSES, PRIORITY_DOT_COLORS, PRIORITY_STRIPE_COLORS, safePriority } from "@/lib/constants";
+import { TASK_STATUSES, PRIORITY_DOT_COLORS, safePriority } from "@/lib/constants";
 import type { Task, TaskStatus } from "@/lib/types/database";
 
 function DragOverlayCard({ task }: { task: Task }) {
   const priority = safePriority(task.priority);
   return (
     <div
-      className="flex items-start gap-2 p-2.5 cursor-grabbing"
+      className="flex items-center gap-2 px-3 py-2 cursor-grabbing"
       style={{
         backgroundColor: 'var(--bg-card)',
-        borderLeft: `3px solid ${PRIORITY_STRIPE_COLORS[priority]}`,
-        borderTop: '1px solid var(--accent-purple)',
-        borderRight: '1px solid var(--accent-purple)',
-        borderBottom: '1px solid var(--accent-purple)',
+        border: '1px solid var(--accent-purple)',
         boxShadow: 'var(--shadow-card-drag)',
         transform: 'scale(1.02) rotate(-0.5deg)',
       }}
     >
-      <div className="shrink-0 mt-0.5">
-        <div
-          className="w-2 h-2 rounded-full"
-          style={{ backgroundColor: PRIORITY_DOT_COLORS[priority] }}
-        />
-      </div>
       <div className="flex-1 min-w-0">
-        <div className="text-xs" style={{ color: 'var(--text-primary)' }}>
+        <div className="text-xs truncate" style={{ color: 'var(--text-primary)' }}>
           {task.content}
         </div>
+      </div>
+      <div className="flex items-center gap-1.5 shrink-0">
         {task.meeting_title && (
-          <div className="mt-1">
-            <span
-              className="inline-block text-[10px] px-1.5 py-0.5"
-              style={{
-                backgroundColor: 'color-mix(in srgb, var(--accent-purple) 15%, transparent)',
-                color: 'var(--accent-purple)',
-              }}
-            >
-              #{task.meeting_title}
-            </span>
-          </div>
+          <span
+            className="text-[10px] px-1 py-0.5"
+            style={{
+              backgroundColor: 'color-mix(in srgb, var(--accent-purple) 12%, transparent)',
+              color: 'var(--accent-purple)',
+            }}
+          >
+            #{task.meeting_title}
+          </span>
         )}
+        <div
+          className="w-1.5 h-1.5 rounded-full"
+          style={{ backgroundColor: PRIORITY_DOT_COLORS[priority] }}
+        />
       </div>
     </div>
   );
@@ -73,6 +68,7 @@ export function KanbanBoard() {
   const [overColumn, setOverColumn] = useState<string | null>(null);
   const [focusedTaskId, setFocusedTaskId] = useState<string | null>(null);
   const [doneCollapsed, setDoneCollapsed] = useState(true);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -84,7 +80,6 @@ export function KanbanBoard() {
     [tasks]
   );
 
-  // Ordered list of all task IDs: column by column, top to bottom
   const allTaskIds = useMemo(() => {
     const ids: string[] = [];
     for (const status of TASK_STATUSES) {
@@ -104,11 +99,17 @@ export function KanbanBoard() {
 
       if (isInput) return;
 
-      // Tab: only intercept when a task is already focused (preserves native tab nav otherwise)
-      if (e.key === "Tab" && focusedTaskId) {
-        e.preventDefault();
+      if (e.key === "Tab") {
         if (allTaskIds.length === 0) return;
 
+        if (!focusedTaskId) {
+          // Bootstrap: first Tab press focuses the first task
+          e.preventDefault();
+          setFocusedTaskId(allTaskIds[0]);
+          return;
+        }
+
+        e.preventDefault();
         const currentIndex = allTaskIds.indexOf(focusedTaskId);
         if (e.shiftKey) {
           const prevIndex = currentIndex <= 0 ? allTaskIds.length - 1 : currentIndex - 1;
@@ -121,18 +122,21 @@ export function KanbanBoard() {
       }
 
       if (e.key === "Escape") {
-        setFocusedTaskId(null);
+        if (selectedTaskId) {
+          setSelectedTaskId(null);
+        } else {
+          setFocusedTaskId(null);
+        }
         return;
       }
 
-      // All shortcuts below require a focused task
       if (!focusedTaskId) return;
       const task = tasks.find((t) => t.id === focusedTaskId);
       if (!task) return;
 
       if (e.key === "1" || e.key === "2" || e.key === "3") {
         e.preventDefault();
-        const priority = parseInt(e.key) - 1; // 0, 1, 2
+        const priority = parseInt(e.key) - 1;
         updateTask(task.id, { priority });
         return;
       }
@@ -167,6 +171,12 @@ export function KanbanBoard() {
         return;
       }
 
+      if (e.key === " ") {
+        e.preventDefault();
+        setSelectedTaskId(task.id);
+        return;
+      }
+
       if (e.key === "Enter") {
         e.preventDefault();
         const cardEl = document.querySelector(`[data-task-id="${focusedTaskId}"]`);
@@ -178,9 +188,8 @@ export function KanbanBoard() {
 
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [allTaskIds, focusedTaskId, tasks, updateTask, deleteTask, moveTask]);
+  }, [allTaskIds, focusedTaskId, selectedTaskId, tasks, updateTask, deleteTask, moveTask]);
 
-  // Find which column a task or droppable ID belongs to
   const findColumn = useCallback(
     (id: string): TaskStatus | null => {
       if (TASK_STATUSES.includes(id as TaskStatus)) return id as TaskStatus;
@@ -269,6 +278,8 @@ export function KanbanBoard() {
     [findColumn, getColumnTasks, moveTask, reorderTasks]
   );
 
+  const selectedTask = selectedTaskId ? tasks.find((t) => t.id === selectedTaskId) : null;
+
   return (
     <DndContext
       sensors={sensors}
@@ -277,7 +288,7 @@ export function KanbanBoard() {
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex gap-2 h-full">
+      <div className="flex gap-0.5 h-full">
         {TASK_STATUSES.map((status) => (
           <KanbanColumn
             key={status}
@@ -285,6 +296,7 @@ export function KanbanBoard() {
             tasks={getColumnTasks(status)}
             isOver={overColumn === status}
             focusedTaskId={focusedTaskId}
+            onSelectTask={setSelectedTaskId}
             {...(status === "done" ? {
               isCollapsed: doneCollapsed,
               onToggleCollapse: () => setDoneCollapsed((c) => !c),
@@ -296,6 +308,68 @@ export function KanbanBoard() {
       <DragOverlay dropAnimation={dropAnimationConfig}>
         {activeTask ? <DragOverlayCard task={activeTask} /> : null}
       </DragOverlay>
+
+      {/* Task detail panel — placeholder, will be built in Task 7 */}
+      {selectedTask && (
+        <div
+          className="fixed top-0 right-0 h-full z-50 flex"
+          onClick={() => setSelectedTaskId(null)}
+        >
+          <div
+            className="w-[400px] h-full overflow-y-auto p-6"
+            style={{
+              backgroundColor: 'var(--bg-card)',
+              borderLeft: '1px solid var(--border-card)',
+              animation: 'fadeSlideIn 100ms ease-out',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2
+                className="text-base font-semibold"
+                style={{ color: 'var(--text-primary)' }}
+              >
+                {selectedTask.content}
+              </h2>
+              <button
+                onClick={() => setSelectedTaskId(null)}
+                className="text-sm"
+                style={{ color: 'var(--text-placeholder)' }}
+              >
+                &times;
+              </button>
+            </div>
+            <div className="space-y-4 text-xs" style={{ color: 'var(--text-secondary)' }}>
+              <div className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid var(--border-card)' }}>
+                <span>Status</span>
+                <span style={{ color: 'var(--text-primary)' }}>{selectedTask.status}</span>
+              </div>
+              <div className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid var(--border-card)' }}>
+                <span>Priority</span>
+                <span style={{ color: 'var(--text-primary)' }}>{["Low", "Medium", "High"][safePriority(selectedTask.priority)]}</span>
+              </div>
+              {selectedTask.meeting_title && (
+                <div className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid var(--border-card)' }}>
+                  <span>Meeting</span>
+                  <span style={{ color: 'var(--accent-purple)' }}>#{selectedTask.meeting_title}</span>
+                </div>
+              )}
+              {selectedTask.created_at && (
+                <div className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid var(--border-card)' }}>
+                  <span>Created</span>
+                  <span style={{ color: 'var(--text-primary)' }}>{new Date(selectedTask.created_at).toLocaleDateString()}</span>
+                </div>
+              )}
+              {selectedTask.completed_at && (
+                <div className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid var(--border-card)' }}>
+                  <span>Completed</span>
+                  <span style={{ color: 'var(--text-primary)' }}>{new Date(selectedTask.completed_at).toLocaleDateString()}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </DndContext>
   );
 }

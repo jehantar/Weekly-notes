@@ -6,19 +6,19 @@ export default function Loading() {
       {/* Header skeleton */}
       <header className="px-4 py-2 flex items-center gap-4" style={{ borderBottom: '1px solid var(--border-card)' }}>
         <div className="flex items-center gap-3">
-          <div className="h-7 w-16 bg-gray-200 animate-pulse" />
-          <div className="h-5 w-[140px] bg-gray-200 animate-pulse" />
-          <div className="h-7 w-16 bg-gray-200 animate-pulse" />
+          <div className="h-7 w-16 bg-[var(--bg-hover)] animate-pulse" />
+          <div className="h-5 w-[140px] bg-[var(--bg-hover)] animate-pulse" />
+          <div className="h-7 w-16 bg-[var(--bg-hover)] animate-pulse" />
         </div>
         <div className="flex items-center gap-2 ml-auto">
-          <div className="h-7 w-14 bg-gray-200 animate-pulse" />
-          <div className="h-7 w-20 bg-gray-200 animate-pulse" />
+          <div className="h-7 w-14 bg-[var(--bg-hover)] animate-pulse" />
+          <div className="h-7 w-20 bg-[var(--bg-hover)] animate-pulse" />
         </div>
       </header>
 
       {/* Day cards skeleton */}
       <div className="flex-1 p-4">
-        <div className="flex gap-3">
+        <div className="flex gap-1">
           {days.map((d) => (
             <div
               key={d}
@@ -26,30 +26,29 @@ export default function Loading() {
               style={{
                 backgroundColor: 'var(--bg-card)',
                 border: '1px solid var(--border-card)',
-                boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.03)',
               }}
             >
               {/* Day header skeleton */}
               <div className="px-3 py-2" style={{ borderBottom: '1px solid var(--border-card)' }}>
                 <div className="flex items-baseline gap-2">
-                  <div className="h-5 w-6 bg-gray-200 animate-pulse" />
-                  <div className="h-3 w-8 bg-gray-200 animate-pulse" />
+                  <div className="h-5 w-6 bg-[var(--bg-hover)] animate-pulse" />
+                  <div className="h-3 w-8 bg-[var(--bg-hover)] animate-pulse" />
                 </div>
               </div>
               {/* Meetings skeleton */}
               <div className="px-3 py-2" style={{ borderBottom: '1px solid var(--border-card)' }}>
-                <div className="h-2.5 w-14 bg-gray-100 animate-pulse mb-2" />
+                <div className="h-2.5 w-14 bg-[var(--bg-hover)] animate-pulse mb-2" />
                 <div className="space-y-1.5">
-                  <div className="h-3 w-3/4 bg-gray-200 animate-pulse" />
-                  <div className="h-3 w-1/2 bg-gray-200 animate-pulse" />
+                  <div className="h-3 w-3/4 bg-[var(--bg-hover)] animate-pulse" />
+                  <div className="h-3 w-1/2 bg-[var(--bg-hover)] animate-pulse" />
                 </div>
               </div>
               {/* Notes skeleton */}
               <div className="px-3 py-2">
-                <div className="h-2.5 w-10 bg-gray-100 animate-pulse mb-2" />
+                <div className="h-2.5 w-10 bg-[var(--bg-hover)] animate-pulse mb-2" />
                 <div className="space-y-1.5">
-                  <div className="h-3 w-full bg-gray-200 animate-pulse" />
-                  <div className="h-3 w-4/5 bg-gray-200 animate-pulse" />
+                  <div className="h-3 w-full bg-[var(--bg-hover)] animate-pulse" />
+                  <div className="h-3 w-4/5 bg-[var(--bg-hover)] animate-pulse" />
                 </div>
               </div>
             </div>

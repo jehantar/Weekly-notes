@@ -26,7 +26,10 @@ export function LoginForm() {
         )}
         <button
           onClick={handleLogin}
-          className="border border-gray-300 px-6 py-3 hover:bg-gray-50 transition-colors"
+          className="px-6 py-3 transition-colors"
+          style={{ border: '1px solid var(--border-card)', color: 'var(--text-primary)' }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-hover)')}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
         >
           Sign in with Google
         </button>

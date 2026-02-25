@@ -25,7 +25,7 @@ export function MeetingItem({ meeting, autoEdit, onAddNext, onBackspace }: Meeti
 
   return (
     <li className="flex items-start gap-1 group">
-      <span className="text-gray-400 mt-0.5 select-none">&bull;</span>
+      <span className="mt-0.5 select-none" style={{ color: 'var(--text-placeholder)' }}>&bull;</span>
       <div className="flex-1 min-w-0">
         <InlineEdit
           value={meeting.title}
@@ -41,7 +41,7 @@ export function MeetingItem({ meeting, autoEdit, onAddNext, onBackspace }: Meeti
         {meeting.granola_note_id && (
           <div className="mt-0.5 ml-0.5">
             {meeting.granola_summary && (
-              <div className="text-xs text-gray-500">
+              <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                 <MarkdownBlock content={meeting.granola_summary} />
               </div>
             )}
@@ -50,13 +50,17 @@ export function MeetingItem({ meeting, autoEdit, onAddNext, onBackspace }: Meeti
                 href={meeting.granola_note_id}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-blue-500 hover:text-blue-700 hover:underline"
+                className="text-xs hover:underline"
+                style={{ color: 'var(--accent-purple)' }}
               >
                 View in Granola
               </a>
               <button
                 onClick={() => unlinkGranolaMeeting(meeting.id)}
-                className="text-xs text-gray-400 hover:text-red-500"
+                className="text-xs transition-colors"
+                style={{ color: 'var(--text-placeholder)' }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = '#dc2626')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-placeholder)')}
               >
                 Unlink
               </button>
@@ -66,7 +70,10 @@ export function MeetingItem({ meeting, autoEdit, onAddNext, onBackspace }: Meeti
       </div>
       <button
         onClick={() => deleteMeeting(meeting.id)}
-        className="text-gray-300 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-xs ml-1 shrink-0"
+        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-xs ml-1 shrink-0"
+        style={{ color: 'var(--text-placeholder)' }}
+        onMouseEnter={(e) => (e.currentTarget.style.color = '#dc2626')}
+        onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-placeholder)')}
         aria-label="Delete meeting"
       >
         &times;

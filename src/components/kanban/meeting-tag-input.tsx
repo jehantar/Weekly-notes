@@ -45,36 +45,34 @@ export function MeetingTagInput({ task }: { task: Task }) {
     linkMeeting(task.id, null, null, null);
   };
 
-  // Show existing tag
+  // Show existing tag — inline compact for the card row
   if (task.meeting_title) {
     return (
-      <div className="mt-1 flex items-center gap-1">
-        <span
-          className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5"
-          style={{
-            backgroundColor: 'color-mix(in srgb, var(--accent-purple) 15%, transparent)',
-            color: 'var(--accent-purple)',
+      <span
+        className="inline-flex items-center gap-0.5 text-[10px] px-1 py-0.5"
+        style={{
+          backgroundColor: 'color-mix(in srgb, var(--accent-purple) 12%, transparent)',
+          color: 'var(--accent-purple)',
+        }}
+      >
+        #{task.meeting_title}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleUnlink();
           }}
+          onPointerDown={(e) => e.stopPropagation()}
+          className="hover:opacity-70 leading-none ml-0.5"
         >
-          #{task.meeting_title}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleUnlink();
-            }}
-            onPointerDown={(e) => e.stopPropagation()}
-            className="hover:opacity-70 leading-none"
-          >
-            &times;
-          </button>
-        </span>
-      </div>
+          &times;
+        </button>
+      </span>
     );
   }
 
   // Show link button + dropdown
   return (
-    <div className="relative mt-1" ref={dropdownRef}>
+    <div className="relative" ref={dropdownRef}>
       <button
         onClick={(e) => {
           e.stopPropagation();
@@ -82,20 +80,20 @@ export function MeetingTagInput({ task }: { task: Task }) {
         }}
         onPointerDown={(e) => e.stopPropagation()}
         className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"
-        style={{ color: 'var(--accent-purple)' }}
+        style={{ color: 'var(--text-placeholder)' }}
       >
-        # Link
+        #
       </button>
 
       {open && (
         <div
-          className="absolute left-0 top-full mt-1 w-48 z-50 py-1 overflow-hidden"
+          className="absolute right-0 top-full mt-1 w-48 z-50 py-1 overflow-hidden"
           style={{
             backgroundColor: 'var(--bg-card)',
             border: '1px solid var(--border-card)',
-            boxShadow: 'var(--shadow-card-hover)',
           }}
           onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
         >
           <div className="px-2 pb-1">
             <input
@@ -124,8 +122,10 @@ export function MeetingTagInput({ task }: { task: Task }) {
                 <button
                   key={meeting.id}
                   onClick={() => handleSelect(meeting.id, meeting.title)}
-                  className="w-full text-left px-2 py-1.5 text-[11px] transition-colors hover:bg-black/5"
+                  className="w-full text-left px-2 py-1.5 text-[11px] transition-colors"
                   style={{ color: 'var(--text-primary)' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-hover)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                 >
                   {meeting.title}
                 </button>

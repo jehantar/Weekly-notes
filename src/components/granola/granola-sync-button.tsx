@@ -85,8 +85,10 @@ export function GranolaSyncButton({ weekStart }: { weekStart: string }) {
     <button
       onClick={handleClick}
       disabled={!!isDisabled}
-      className="text-sm px-3 py-1 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
-      style={{ border: '1px solid var(--border-card)' }}
+      className="text-sm px-3 py-1 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+      style={{ border: '1px solid var(--border-card)', color: 'var(--text-secondary)' }}
+      onMouseEnter={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = 'var(--bg-hover)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
     >
       {label}
     </button>
