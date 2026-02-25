@@ -90,7 +90,7 @@ export function SearchCommand({
   return (
     <div
       className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh]"
-      style={{ backgroundColor: 'rgba(0,0,0,0.15)', backdropFilter: 'blur(2px)' }}
+      style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
@@ -135,7 +135,9 @@ export function SearchCommand({
                   <button
                     key={item.item_id}
                     onClick={() => handleResultClick(item)}
-                    className="w-full text-left px-4 py-2 text-xs hover:bg-gray-50 transition-colors duration-100"
+                    className="w-full text-left px-4 py-2 text-xs transition-colors duration-100"
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-hover)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                     style={{ borderBottom: '1px solid var(--border-card)' }}
                   >
                     <span className="mr-2" style={{ color: 'var(--text-placeholder)' }}>
@@ -159,7 +161,9 @@ export function SearchCommand({
                   <button
                     key={item.item_id}
                     onClick={() => handleResultClick(item)}
-                    className="w-full text-left px-4 py-2 text-xs hover:bg-gray-50 transition-colors duration-100"
+                    className="w-full text-left px-4 py-2 text-xs transition-colors duration-100"
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-hover)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                     style={{ borderBottom: '1px solid var(--border-card)' }}
                   >
                     <span className="mr-2" style={{ color: 'var(--text-placeholder)' }}>

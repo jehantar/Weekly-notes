@@ -14,11 +14,23 @@ export function NoteToolbar({ editor }: { editor: Editor }) {
         e.preventDefault();
         onClick();
       }}
-      className={`px-1.5 py-0.5 rounded text-xs font-mono ${
-        isActive
-          ? "bg-gray-200 text-gray-900"
-          : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-      }`}
+      className="px-1.5 py-0.5 text-xs font-mono transition-colors"
+      style={{
+        backgroundColor: isActive ? 'var(--bg-hover)' : 'transparent',
+        color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
+      }}
+      onMouseEnter={(e) => {
+        if (!isActive) {
+          e.currentTarget.style.backgroundColor = 'var(--bg-hover)';
+          e.currentTarget.style.color = 'var(--text-primary)';
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!isActive) {
+          e.currentTarget.style.backgroundColor = 'transparent';
+          e.currentTarget.style.color = 'var(--text-secondary)';
+        }
+      }}
     >
       {label}
     </button>

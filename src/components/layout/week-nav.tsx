@@ -23,8 +23,10 @@ export function WeekNav({
     <div className="flex items-center gap-3">
       <button
         onClick={() => navigateWeek(-1)}
-        className="px-2 py-1 text-sm transition-colors duration-150 hover:bg-gray-100"
-        style={{ border: '1px solid var(--border-card)' }}
+        className="px-2 py-1 text-sm transition-colors duration-150"
+        style={{ border: '1px solid var(--border-card)', color: 'var(--text-secondary)' }}
+        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-hover)')}
+        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
         aria-label="Previous week"
       >
         &larr; Prev
@@ -34,16 +36,20 @@ export function WeekNav({
       </span>
       <button
         onClick={() => onNavigateForward ? onNavigateForward() : navigateWeek(1)}
-        className="px-2 py-1 text-sm transition-colors duration-150 hover:bg-gray-100"
-        style={{ border: '1px solid var(--border-card)' }}
+        className="px-2 py-1 text-sm transition-colors duration-150"
+        style={{ border: '1px solid var(--border-card)', color: 'var(--text-secondary)' }}
+        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-hover)')}
+        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
         aria-label="Next week"
       >
         Next &rarr;
       </button>
       <button
         onClick={() => router.push(`/week/${getCurrentWeekStart()}`)}
-        className="px-2 py-1 text-xs transition-colors duration-150 hover:bg-gray-100"
+        className="px-2 py-1 text-xs transition-colors duration-150"
         style={{ border: '1px solid var(--border-card)', color: 'var(--text-secondary)' }}
+        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-hover)')}
+        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
       >
         Today
       </button>

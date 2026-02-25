@@ -108,7 +108,7 @@ export function InlineEdit({
             <span>{value}</span>
           )
         ) : (
-          <span className="text-gray-300">{placeholder}</span>
+          <span style={{ color: 'var(--text-placeholder)' }}>{placeholder}</span>
         )}
       </div>
     );

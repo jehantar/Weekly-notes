@@ -16,13 +16,15 @@ export default function RootError({
         <div className="space-x-4">
           <button
             onClick={reset}
-            className="px-4 py-2 bg-gray-900 text-white rounded hover:bg-gray-700 transition-colors"
+            className="px-4 py-2 transition-colors"
+            style={{ backgroundColor: 'var(--accent-purple)', color: '#fff' }}
           >
             Try again
           </button>
           <Link
             href="/"
-            className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+            className="px-4 py-2 transition-colors"
+            style={{ border: '1px solid var(--border-card)', color: 'var(--text-secondary)' }}
           >
             Go home
           </Link>

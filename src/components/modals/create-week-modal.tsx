@@ -143,7 +143,7 @@ export function CreateWeekModal({
 
   if (loading) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(2px)' }}>
+      <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}>
         <div className="p-6 max-w-2xl w-full shadow-xl" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-card)' }}>
           <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Loading...</p>
         </div>
@@ -152,20 +152,20 @@ export function CreateWeekModal({
   }
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(2px)' }}>
+    <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}>
       <div className="p-6 max-w-3xl w-full max-h-[80vh] overflow-y-auto shadow-xl" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-card)' }}>
         <h2 className="text-lg font-bold mb-1">Create Week</h2>
-        <p className="text-xs text-gray-500 mb-4">
+        <p className="text-xs mb-4" style={{ color: 'var(--text-secondary)' }}>
           Set up meetings for the week of{" "}
           {formatDayHeader(monday, 1).split(" ")[1]}
         </p>
 
         {templateMeetings.length === 0 ? (
-          <p className="text-sm text-gray-400 mb-4">
+          <p className="text-sm mb-4" style={{ color: 'var(--text-placeholder)' }}>
             No previous week found. Starting blank.
           </p>
         ) : (
-          <p className="text-xs text-gray-400 mb-4">
+          <p className="text-xs mb-4" style={{ color: 'var(--text-placeholder)' }}>
             Meetings cloned from previous week. Uncheck to remove, change day
             as needed.
           </p>
@@ -177,7 +177,7 @@ export function CreateWeekModal({
               .map((m, i) => ({ ...m, index: i }))
               .filter((m) => m.day_of_week === day);
             return (
-              <div key={day} className="border border-gray-200 p-2">
+              <div key={day} className="p-2" style={{ border: '1px solid var(--border-card)' }}>
                 <div className="text-xs font-bold mb-2">
                   {DAY_LABELS[day - 1]}
                 </div>
@@ -194,9 +194,8 @@ export function CreateWeekModal({
                         className="shrink-0"
                       />
                       <span
-                        className={
-                          m.included ? "" : "line-through text-gray-300"
-                        }
+                        className={m.included ? "" : "line-through"}
+                        style={m.included ? undefined : { color: 'var(--text-placeholder)' }}
                       >
                         {m.title}
                       </span>
@@ -205,7 +204,8 @@ export function CreateWeekModal({
                         onChange={(e) =>
                           moveMeeting(m.index, Number(e.target.value))
                         }
-                        className="ml-auto text-[10px] border border-gray-200 bg-white"
+                        className="ml-auto text-[10px]"
+                        style={{ border: '1px solid var(--border-card)', backgroundColor: 'var(--bg-card)', color: 'var(--text-primary)' }}
                       >
                         {DAYS_OF_WEEK.map((d) => (
                           <option key={d} value={d}>
@@ -218,7 +218,10 @@ export function CreateWeekModal({
                 </div>
                 <button
                   onClick={() => addTemplateMeeting(day)}
-                  className="text-gray-300 hover:text-gray-500 text-xs mt-1"
+                  className="text-xs mt-1 transition-colors"
+                  style={{ color: 'var(--text-placeholder)' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-secondary)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-placeholder)')}
                 >
                   + Add
                 </button>
@@ -230,14 +233,20 @@ export function CreateWeekModal({
         <div className="flex justify-end gap-2">
           <button
             onClick={onClose}
-            className="px-4 py-1.5 border border-gray-300 text-sm hover:bg-gray-50"
+            className="px-4 py-1.5 text-sm transition-colors"
+            style={{ border: '1px solid var(--border-card)', color: 'var(--text-secondary)' }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-hover)')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
           >
             Cancel
           </button>
           <button
             onClick={createWeek}
             disabled={creating}
-            className="px-4 py-1.5 bg-gray-900 text-white text-sm hover:bg-gray-800 disabled:opacity-50"
+            className="px-4 py-1.5 text-sm disabled:opacity-50 transition-colors"
+            style={{ backgroundColor: 'var(--accent-purple)', color: '#fff' }}
+            onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.9')}
+            onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
           >
             Create Week
           </button>

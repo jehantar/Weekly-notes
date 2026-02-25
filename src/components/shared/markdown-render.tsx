@@ -11,7 +11,8 @@ const inlineComponents: Components = {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="text-blue-600 underline hover:text-blue-800"
+      className="underline"
+      style={{ color: 'var(--accent-purple)' }}
     >
       {children}
     </a>
@@ -24,7 +25,8 @@ const blockComponents: Components = {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="text-blue-600 underline hover:text-blue-800"
+      className="underline"
+      style={{ color: 'var(--accent-purple)' }}
     >
       {children}
     </a>

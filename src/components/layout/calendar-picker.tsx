@@ -34,8 +34,10 @@ export function CalendarPicker() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(!open)}
-        className="px-2 py-1 text-sm transition-colors duration-150 hover:bg-gray-100"
-        style={{ border: '1px solid var(--border-card)' }}
+        className="px-2 py-1 text-sm transition-colors duration-150"
+        style={{ border: '1px solid var(--border-card)', color: 'var(--text-secondary)' }}
+        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-hover)')}
+        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
         aria-label="Open calendar"
       >
         Cal
@@ -48,8 +50,8 @@ export function CalendarPicker() {
             onSelect={handleSelect}
             weekStartsOn={1}
             styles={{
-              caption: { fontFamily: "monospace", fontSize: "0.875rem" },
-              day: { fontFamily: "monospace", fontSize: "0.75rem" },
+              caption: { fontSize: "0.875rem", color: 'var(--text-primary)' },
+              day: { fontSize: "0.75rem", color: 'var(--text-primary)' },
             }}
           />
         </div>
