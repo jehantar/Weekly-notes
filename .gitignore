@@ -45,4 +45,5 @@ supabase/.temp/
 /tasks/
 SPEC.md
 template.jpeg
+public/favicon.png
 .worktrees/
