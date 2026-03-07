@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: "Weekly Notes",
   description: "Weekly meetings, tasks, and notes tracker",
   icons: {
-    icon: "/favicon.png",
+    icon: "/favicon.svg",
   },
 };
 
