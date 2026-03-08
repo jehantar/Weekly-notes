@@ -15,6 +15,20 @@
   --shadow-card-drag: 0 8px 24px -4px rgb(0 0 0 / 0.4);
 }
 
+/* Light mode overrides */
+[data-theme="light"] {
+  --bg-page: #F8F8FA;
+  --bg-card: #FFFFFF;
+  --bg-column: #F0F0F3;
+  --bg-hover: #E8E8EC;
+  --border-card: #E0E0E4;
+  --accent-purple: #6366B0;
+  --text-primary: #1A1A1E;
+  --text-secondary: #6B6C70;
+  --text-placeholder: #A0A1A6;
+  --shadow-card-drag: 0 8px 24px -4px rgb(0 0 0 / 0.1);
+}
+
 /* TipTap editor styles for notes */
 .tiptap-notes {
   font-size: 0.75rem;
@@ -132,6 +146,11 @@
   float: left;
   height: 0;
   pointer-events: none;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes fadeSlideIn {

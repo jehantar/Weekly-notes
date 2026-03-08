@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useSortable, defaultAnimateLayoutChanges, type AnimateLayoutChanges } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useTasks } from "@/components/providers/tasks-provider";
 import { MeetingTagInput } from "./meeting-tag-input";
+import { HoverPreview } from "./hover-preview";
 import type { Task } from "@/lib/types/database";
 import { PRIORITY_LABELS, PRIORITY_DOT_COLORS, safePriority, TAG_COLORS } from "@/lib/constants";
 
@@ -84,6 +85,8 @@ export function KanbanCard({
   const [editing, setEditing] = useState(false);
   const [editContent, setEditContent] = useState(task.content);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const hoverTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const priority = safePriority(task.priority);
 
@@ -157,6 +160,23 @@ export function KanbanCard({
     updateTask(task.id, { priority: next });
   };
 
+  const cancelPreview = useCallback(() => {
+    clearTimeout(hoverTimer.current);
+    hoverTimer.current = undefined;
+    setShowPreview(false);
+  }, []);
+
+  const handleMouseEnter = useCallback(() => {
+    if (editing || isDragging || isSelected) return;
+    hoverTimer.current = setTimeout(() => setShowPreview(true), 400);
+  }, [editing, isDragging, isSelected]);
+
+  // Cancel preview when drag starts or card is selected; clean up timer on unmount
+  useEffect(() => {
+    if (isDragging || isSelected) cancelPreview();
+    return () => clearTimeout(hoverTimer.current);
+  }, [isDragging, isSelected, cancelPreview]);
+
   const handleCardClick = (e: React.MouseEvent) => {
     // If Cmd/Ctrl held or selection mode active, toggle select instead of opening panel
     if (e.metaKey || e.ctrlKey || e.shiftKey || selectionActive) {
@@ -172,10 +192,12 @@ export function KanbanCard({
   return (
     <div
       ref={setNodeRef}
-      style={style}
+      style={{ ...style, position: "relative" }}
       className="group flex items-center gap-2 px-3 py-2 cursor-grab active:cursor-grabbing hover:bg-[var(--bg-hover)]"
       data-task-id={task.id}
-      onClick={handleCardClick}
+      onClick={(e) => { cancelPreview(); handleCardClick(e); }}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={cancelPreview}
       {...attributes}
       {...listeners}
     >
@@ -256,6 +278,9 @@ export function KanbanCard({
           &times;
         </button>
       </div>
+
+      {/* Hover preview popover */}
+      {showPreview && <HoverPreview taskId={task.id} />}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import type { Meeting, Note, Task, Tag } from "@/lib/types/database";
 import { DAY_LABELS } from "@/lib/constants";
+import { stripHtml } from "@/lib/utils/strings";
 
 export function generateWeekSummary({
   meetings,
@@ -54,8 +55,7 @@ export function generateWeekSummary({
       .sort((a, b) => a.day_of_week - b.day_of_week)
       .map((n) => {
         const label = DAY_LABELS[n.day_of_week - 1] ?? `Day ${n.day_of_week}`;
-        // Strip HTML tags for plain text preview
-        const plain = n.content.replace(/<[^>]*>/g, "").trim();
+        const plain = stripHtml(n.content);
         const preview = plain.length > 100 ? plain.slice(0, 100) + "..." : plain;
         return `- ${label}: ${preview}`;
       });
