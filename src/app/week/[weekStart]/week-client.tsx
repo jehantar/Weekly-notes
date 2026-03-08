@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Header, type ViewTab } from "@/components/layout/header";
 import { DayCards } from "@/components/layout/day-cards";
 import { KanbanBoard } from "@/components/kanban/kanban-board";
+import { UpdatesView } from "@/components/updates/updates-view";
 import { CreateWeekModal } from "@/components/modals/create-week-modal";
 import { SearchCommand } from "@/components/layout/search-command";
 import { parseWeekStart, addWeeks as addWeeksUtil, formatWeekStart } from "@/lib/utils/dates";
@@ -26,7 +27,9 @@ export function WeekClient({
 
   // Tab state from query param
   const viewParam = searchParams.get("view") as ViewTab | null;
-  const [activeTab, setActiveTab] = useState<ViewTab>(viewParam === "tasks" ? "tasks" : "notes");
+  const [activeTab, setActiveTab] = useState<ViewTab>(
+    viewParam === "tasks" ? "tasks" : viewParam === "updates" ? "updates" : "notes"
+  );
 
   const handleTabChange = useCallback((tab: ViewTab) => {
     setActiveTab(tab);
@@ -40,7 +43,8 @@ export function WeekClient({
   }, []);
 
   const handleNavigateForward = () => {
-    router.push(`/week/${nextWeekStart}${activeTab === "tasks" ? "?view=tasks" : ""}`);
+    const viewSuffix = activeTab !== "notes" ? `?view=${activeTab}` : "";
+    router.push(`/week/${nextWeekStart}${viewSuffix}`);
   };
 
   useEffect(() => {
@@ -84,7 +88,7 @@ export function WeekClient({
       if (["INPUT", "TEXTAREA"].includes((e.target as HTMLElement).tagName) || (e.target as HTMLElement).isContentEditable) return;
       if (e.key === "ArrowLeft") {
         e.preventDefault();
-        router.push(`/week/${formatWeekStart(addWeeksUtil(monday, -1))}${activeTab === "tasks" ? "?view=tasks" : ""}`);
+        router.push(`/week/${formatWeekStart(addWeeksUtil(monday, -1))}${activeTab !== "notes" ? `?view=${activeTab}` : ""}`);
       }
       if (e.key === "ArrowRight") {
         e.preventDefault();
@@ -112,8 +116,10 @@ export function WeekClient({
       <main className="flex-1 p-4 overflow-hidden">
         {activeTab === "notes" ? (
           <DayCards monday={monday} />
-        ) : (
+        ) : activeTab === "tasks" ? (
           <KanbanBoard />
+        ) : (
+          <UpdatesView weekStart={weekStart} monday={monday} />
         )}
       </main>
       {showCreateModal && (

@@ -212,6 +212,33 @@ export interface Database {
         };
         Relationships: [];
       };
+      week_summaries: {
+        Row: {
+          id: string;
+          user_id: string;
+          week_start: string;
+          content: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          week_start: string;
+          content?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          week_start?: string;
+          content?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       granola_tokens: {
         Row: {
           id: string;
@@ -288,4 +315,5 @@ export type Task = Database["public"]["Tables"]["tasks"]["Row"];
 export type Subtask = Database["public"]["Tables"]["subtasks"]["Row"];
 export type Tag = Database["public"]["Tables"]["tags"]["Row"];
 export type TaskTag = Database["public"]["Tables"]["task_tags"]["Row"];
+export type WeekSummary = Database["public"]["Tables"]["week_summaries"]["Row"];
 export type GranolaToken = Database["public"]["Tables"]["granola_tokens"]["Row"];

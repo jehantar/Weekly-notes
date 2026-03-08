@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -19,6 +19,7 @@ import { useTasks } from "@/components/providers/tasks-provider";
 import { TASK_STATUSES, PRIORITY_DOT_COLORS, safePriority, taskSortCompare } from "@/lib/constants";
 import { TaskDetailPanel } from "./task-detail-panel";
 import { TagFilterBar } from "./tag-filter-bar";
+import { BulkActionsBar } from "./bulk-actions-bar";
 import type { Task, TaskStatus } from "@/lib/types/database";
 
 function DragOverlayCard({ task }: { task: Task }) {
@@ -71,6 +72,8 @@ export function KanbanBoard() {
   const [focusedTaskId, setFocusedTaskId] = useState<string | null>(null);
   const [doneCollapsed, setDoneCollapsed] = useState(true);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [bulkSelectedIds, setBulkSelectedIds] = useState<Set<string>>(new Set());
+  const lastClickedRef = useRef<string | null>(null);
   const [tagFilters, setTagFilters] = useState<Set<string>>(new Set());
   const [shortcutsDismissed, setShortcutsDismissed] = useState(() => {
     if (typeof window === "undefined") return true;
@@ -87,6 +90,45 @@ export function KanbanBoard() {
   }, []);
 
   const clearTagFilters = useCallback(() => setTagFilters(new Set()), []);
+
+  const handleToggleSelect = useCallback(
+    (taskId: string, shiftKey: boolean) => {
+      setBulkSelectedIds((prev) => {
+        const next = new Set(prev);
+        const lastClickedId = lastClickedRef.current;
+        if (shiftKey && lastClickedId) {
+          // Range select within same column
+          const task = tasks.find((t) => t.id === taskId);
+          const lastTask = tasks.find((t) => t.id === lastClickedId);
+          if (task && lastTask && task.status === lastTask.status) {
+            const columnTasks = tasks
+              .filter((t) => t.status === task.status)
+              .sort(taskSortCompare);
+            const startIdx = columnTasks.findIndex((t) => t.id === lastClickedId);
+            const endIdx = columnTasks.findIndex((t) => t.id === taskId);
+            const [lo, hi] = startIdx < endIdx ? [startIdx, endIdx] : [endIdx, startIdx];
+            for (let i = lo; i <= hi; i++) {
+              next.add(columnTasks[i].id);
+            }
+          } else {
+            if (next.has(taskId)) next.delete(taskId);
+            else next.add(taskId);
+          }
+        } else {
+          if (next.has(taskId)) next.delete(taskId);
+          else next.add(taskId);
+        }
+        return next;
+      });
+      lastClickedRef.current = taskId;
+    },
+    [tasks]
+  );
+
+  const clearBulkSelection = useCallback(() => {
+    setBulkSelectedIds(new Set());
+    lastClickedRef.current = null;
+  }, []);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -149,7 +191,9 @@ export function KanbanBoard() {
       }
 
       if (e.key === "Escape") {
-        if (selectedTaskId) {
+        if (bulkSelectedIds.size > 0) {
+          clearBulkSelection();
+        } else if (selectedTaskId) {
           setSelectedTaskId(null);
         } else {
           setFocusedTaskId(null);
@@ -216,7 +260,7 @@ export function KanbanBoard() {
 
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [allTaskIds, focusedTaskId, selectedTaskId, tasks, updateTask, deleteTask, moveTask]);
+  }, [allTaskIds, focusedTaskId, selectedTaskId, bulkSelectedIds, clearBulkSelection, tasks, updateTask, deleteTask, moveTask]);
 
   const findColumn = useCallback(
     (id: string): TaskStatus | null => {
@@ -364,7 +408,9 @@ export function KanbanBoard() {
               tasks={getColumnTasks(status)}
               isOver={overColumn === status}
               focusedTaskId={focusedTaskId}
-              onSelectTask={setSelectedTaskId}
+              onSelectTask={bulkSelectedIds.size > 0 ? undefined : setSelectedTaskId}
+              selectedTaskIds={bulkSelectedIds}
+              onToggleSelect={handleToggleSelect}
               {...(status === "done" ? {
                 isCollapsed: doneCollapsed,
                 onToggleCollapse: () => setDoneCollapsed((c) => !c),
@@ -382,6 +428,13 @@ export function KanbanBoard() {
         <TaskDetailPanel
           task={selectedTask}
           onClose={() => setSelectedTaskId(null)}
+        />
+      )}
+
+      {bulkSelectedIds.size > 0 && (
+        <BulkActionsBar
+          selectedIds={bulkSelectedIds}
+          onClearSelection={clearBulkSelection}
         />
       )}
     </>

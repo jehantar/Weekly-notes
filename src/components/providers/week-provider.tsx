@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { useSupabase } from "./supabase-provider";
-import type { Week, Meeting, Note } from "@/lib/types/database";
+import type { Week, Meeting, Note, WeekSummary } from "@/lib/types/database";
 import { UNDO_TIMEOUT } from "@/lib/constants";
 import { toast } from "sonner";
 
@@ -16,6 +16,7 @@ export type WeekData = {
   week: Week | null;
   meetings: Meeting[];
   notes: Note[];
+  summary: WeekSummary | null;
 };
 
 type WeekContextType = WeekData & {
@@ -28,6 +29,8 @@ type WeekContextType = WeekData & {
   unlinkGranolaMeeting: (meetingId: string) => Promise<void>;
   // Notes
   upsertNote: (dayOfWeek: number, content: string) => Promise<void>;
+  // Summary
+  upsertSummary: (content: string) => Promise<void>;
   // Week
   setWeekData: (data: WeekData) => void;
 };
@@ -45,6 +48,7 @@ export function WeekProvider({
   const [week, setWeek] = useState(initialData.week);
   const [meetings, setMeetings] = useState(initialData.meetings);
   const [notes, setNotes] = useState(initialData.notes);
+  const [summary, setSummary] = useState(initialData.summary);
 
   const weekId = week?.id ?? null;
 
@@ -52,6 +56,7 @@ export function WeekProvider({
     setWeek(data.week);
     setMeetings(data.meetings);
     setNotes(data.notes);
+    setSummary(data.summary);
   }, []);
 
   const refreshMeetings = useCallback(async () => {
@@ -223,6 +228,52 @@ export function WeekProvider({
     [weekId, notes, supabase]
   );
 
+  const upsertSummary = useCallback(
+    async (content: string) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !week) return;
+
+      const weekStart = week.week_start;
+
+      if (summary) {
+        // Update existing
+        const old = summary;
+        setSummary({ ...summary, content, updated_at: new Date().toISOString() });
+
+        const { data, error } = await supabase
+          .from("week_summaries")
+          .update({ content })
+          .eq("id", summary.id)
+          .select("updated_at")
+          .single();
+
+        if (error) {
+          setSummary(old);
+          toast.error("Failed to save summary");
+        } else if (data) {
+          setSummary((prev) => prev ? { ...prev, updated_at: data.updated_at } : prev);
+        }
+      } else {
+        // Insert new
+        const { data, error } = await supabase
+          .from("week_summaries")
+          .upsert(
+            { user_id: user.id, week_start: weekStart, content },
+            { onConflict: "user_id,week_start" }
+          )
+          .select()
+          .single();
+
+        if (error || !data) {
+          toast.error("Failed to save summary");
+        } else {
+          setSummary(data as WeekSummary);
+        }
+      }
+    },
+    [supabase, week, summary]
+  );
+
   return (
     <WeekContext.Provider
       value={{
@@ -230,12 +281,14 @@ export function WeekProvider({
         weekId,
         meetings,
         notes,
+        summary,
         addMeeting,
         updateMeeting,
         deleteMeeting,
         refreshMeetings,
         unlinkGranolaMeeting,
         upsertNote,
+        upsertSummary,
         setWeekData,
       }}
     >

@@ -68,11 +68,17 @@ const animateLayoutChanges: AnimateLayoutChanges = (args) =>
 export function KanbanCard({
   task,
   isFocused,
+  isSelected,
+  selectionActive,
   onSelectTask,
+  onToggleSelect,
 }: {
   task: Task;
   isFocused?: boolean;
+  isSelected?: boolean;
+  selectionActive?: boolean;
   onSelectTask?: (taskId: string) => void;
+  onToggleSelect?: (taskId: string, shiftKey: boolean) => void;
 }) {
   const { updateTask, deleteTask } = useTasks();
   const [editing, setEditing] = useState(false);
@@ -105,9 +111,13 @@ export function KanbanCard({
           opacity: 1,
           borderBottom: '1px solid var(--border-card)',
         }),
-    ...(isFocused && !isDragging && {
+    ...(isFocused && !isDragging && !isSelected && {
       outline: '1px solid var(--accent-purple)',
       outlineOffset: '-1px',
+    }),
+    ...(isSelected && !isDragging && {
+      borderLeft: '3px solid var(--accent-purple)',
+      backgroundColor: 'color-mix(in srgb, var(--accent-purple) 8%, var(--bg-column))',
     }),
   };
 
@@ -148,7 +158,12 @@ export function KanbanCard({
   };
 
   const handleCardClick = (e: React.MouseEvent) => {
-    // Only open detail panel if clicking the card body (not text, dot, or delete)
+    // If Cmd/Ctrl held or selection mode active, toggle select instead of opening panel
+    if (e.metaKey || e.ctrlKey || e.shiftKey || selectionActive) {
+      e.preventDefault();
+      onToggleSelect?.(task.id, e.shiftKey);
+      return;
+    }
     if (onSelectTask) {
       onSelectTask(task.id);
     }

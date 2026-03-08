@@ -24,6 +24,9 @@ type TasksContextType = {
   reorderTasks: (status: TaskStatus, orderedIds: string[]) => Promise<void>;
   linkMeeting: (taskId: string, meetingId: string | null, title: string | null, weekStart: string | null) => Promise<void>;
   clearCompleted: () => Promise<void>;
+  bulkMoveTasks: (ids: string[], status: TaskStatus) => Promise<void>;
+  bulkDeleteTasks: (ids: string[]) => void;
+  bulkAddTag: (ids: string[], tagId: string) => Promise<void>;
   addSubtask: (taskId: string, content: string) => Promise<Subtask | null>;
   updateSubtask: (id: string, taskId: string, updates: Partial<Subtask>) => Promise<void>;
   deleteSubtask: (id: string, taskId: string) => Promise<void>;
@@ -328,6 +331,86 @@ export function TasksProvider({
     [supabase]
   );
 
+  const bulkMoveTasks = useCallback(
+    async (ids: string[], status: TaskStatus) => {
+      const snapshot = tasksRef.current;
+      const completedAt = status === "done" ? new Date().toISOString() : null;
+
+      setTasks((prev) =>
+        prev.map((t) =>
+          ids.includes(t.id) ? { ...t, status, completed_at: completedAt } : t
+        )
+      );
+
+      const { error } = await supabase
+        .from("tasks")
+        .update({ status, completed_at: completedAt })
+        .in("id", ids);
+
+      if (error) {
+        setTasks(snapshot);
+        toast.error("Failed to move tasks");
+      }
+    },
+    [supabase]
+  );
+
+  const bulkDeleteTasks = useCallback(
+    (ids: string[]) => {
+      const items = tasksRef.current.filter((t) => ids.includes(t.id));
+      if (items.length === 0) return;
+
+      setTasks((prev) => prev.filter((t) => !ids.includes(t.id)));
+
+      const timeout = setTimeout(async () => {
+        const { error } = await supabase.from("tasks").delete().in("id", ids);
+        if (error) {
+          setTasks((prev) => [...prev, ...items]);
+          toast.error("Failed to delete tasks");
+        }
+      }, UNDO_TIMEOUT);
+
+      toast(`${items.length} task${items.length > 1 ? "s" : ""} deleted`, {
+        action: {
+          label: "Undo",
+          onClick: () => {
+            clearTimeout(timeout);
+            setTasks((prev) => [...prev, ...items]);
+          },
+        },
+        duration: UNDO_TIMEOUT,
+      });
+    },
+    [supabase]
+  );
+
+  const bulkAddTag = useCallback(
+    async (ids: string[], tagId: string) => {
+      // Only add to tasks that don't already have this tag
+      const toAdd = ids.filter((id) => !(taskTags[id] ?? []).includes(tagId));
+      if (toAdd.length === 0) return;
+
+      const snapshot = { ...taskTags };
+      setTaskTags((prev) => {
+        const next = { ...prev };
+        for (const id of toAdd) {
+          next[id] = [...(next[id] ?? []), tagId];
+        }
+        return next;
+      });
+
+      const { error } = await supabase
+        .from("task_tags")
+        .insert(toAdd.map((taskId) => ({ task_id: taskId, tag_id: tagId })));
+
+      if (error) {
+        setTaskTags(snapshot);
+        toast.error("Failed to tag tasks");
+      }
+    },
+    [supabase, taskTags]
+  );
+
   const clearCompleted = useCallback(async () => {
     const currentTasks = tasksRef.current;
     const completedTasks = currentTasks.filter((t) => t.status === "done");
@@ -448,6 +531,9 @@ export function TasksProvider({
         reorderTasks,
         linkMeeting,
         clearCompleted,
+        bulkMoveTasks,
+        bulkDeleteTasks,
+        bulkAddTag,
         addSubtask,
         updateSubtask,
         deleteSubtask,

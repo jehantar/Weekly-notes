@@ -28,7 +28,7 @@ class GranolaErrorBoundary extends Component<
   }
 }
 
-export type ViewTab = "notes" | "tasks";
+export type ViewTab = "notes" | "tasks" | "updates";
 
 export function Header({
   weekStart,
@@ -71,7 +71,7 @@ export function Header({
       </div>
       {/* Tab bar */}
       <div className="px-4 flex gap-0 items-center">
-        {(["notes", "tasks"] as const).map((tab) => (
+        {(["notes", "tasks", "updates"] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => onTabChange(tab)}

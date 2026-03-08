@@ -37,6 +37,14 @@ export function getCurrentWeekStart(): string {
   return formatWeekStart(getMonday());
 }
 
+export { addDays };
+
+/** Format a week range like "Mar 2 – Mar 6, 2026" */
+export function formatWeekRange(monday: Date): string {
+  const friday = addDays(monday, 4);
+  return `${monday.toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${friday.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
+}
+
 /** Check if a specific day-of-week in a given week is today */
 export function isDayToday(monday: Date, dayOfWeek: number): boolean {
   return isTodayFns(addDays(monday, dayOfWeek - 1));

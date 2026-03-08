@@ -17,6 +17,8 @@ export function KanbanColumn({
   isCollapsed,
   onToggleCollapse,
   onSelectTask,
+  selectedTaskIds,
+  onToggleSelect,
 }: {
   status: TaskStatus;
   tasks: Task[];
@@ -25,6 +27,8 @@ export function KanbanColumn({
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
   onSelectTask?: (taskId: string) => void;
+  selectedTaskIds?: Set<string>;
+  onToggleSelect?: (taskId: string, shiftKey: boolean) => void;
 }) {
   const [adding, setAdding] = useState(false);
   const { clearCompleted } = useTasks();
@@ -144,7 +148,10 @@ export function KanbanColumn({
               key={task.id}
               task={task}
               isFocused={focusedTaskId === task.id}
+              isSelected={selectedTaskIds?.has(task.id)}
+              selectionActive={(selectedTaskIds?.size ?? 0) > 0}
               onSelectTask={onSelectTask}
+              onToggleSelect={onToggleSelect}
             />
           ))}
         </SortableContext>
