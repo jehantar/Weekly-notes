@@ -146,6 +146,72 @@ export interface Database {
         };
         Relationships: [];
       };
+      tags: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          color: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          color?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          name?: string;
+          color?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      task_tags: {
+        Row: {
+          task_id: string;
+          tag_id: string;
+        };
+        Insert: {
+          task_id: string;
+          tag_id: string;
+        };
+        Update: {
+          task_id?: string;
+          tag_id?: string;
+        };
+        Relationships: [];
+      };
+      subtasks: {
+        Row: {
+          id: string;
+          task_id: string;
+          content: string;
+          completed: boolean;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          task_id: string;
+          content: string;
+          completed?: boolean;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          task_id?: string;
+          content?: string;
+          completed?: boolean;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       granola_tokens: {
         Row: {
           id: string;
@@ -219,4 +285,7 @@ export type Week = Database["public"]["Tables"]["weeks"]["Row"];
 export type Meeting = Database["public"]["Tables"]["meetings"]["Row"];
 export type Note = Database["public"]["Tables"]["notes"]["Row"];
 export type Task = Database["public"]["Tables"]["tasks"]["Row"];
+export type Subtask = Database["public"]["Tables"]["subtasks"]["Row"];
+export type Tag = Database["public"]["Tables"]["tags"]["Row"];
+export type TaskTag = Database["public"]["Tables"]["task_tags"]["Row"];
 export type GranolaToken = Database["public"]["Tables"]["granola_tokens"]["Row"];

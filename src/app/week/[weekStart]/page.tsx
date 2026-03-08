@@ -6,7 +6,7 @@ import { SupabaseProvider } from "@/components/providers/supabase-provider";
 import { WeekProvider, type WeekData } from "@/components/providers/week-provider";
 import { TasksProvider } from "@/components/providers/tasks-provider";
 import { WeekClient } from "./week-client";
-import type { Week, Meeting, Note, Task } from "@/lib/types/database";
+import type { Week, Meeting, Note, Task, Tag } from "@/lib/types/database";
 
 export default async function WeekPage({
   params,
@@ -50,6 +50,23 @@ export default async function WeekPage({
 
   const initialTasks = (tasksData ?? []) as Task[];
 
+  // Fetch tags and task_tags (scoped to user's tasks)
+  const taskIds = initialTasks.map((t) => t.id);
+  const [tagsRes, taskTagsRes] = await Promise.all([
+    supabase.from("tags").select("*").eq("user_id", user.id),
+    taskIds.length > 0
+      ? supabase.from("task_tags").select("*").in("task_id", taskIds)
+      : Promise.resolve({ data: [] }),
+  ]);
+
+  const initialTags = (tagsRes.data ?? []) as Tag[];
+  const taskTagsMap: Record<string, string[]> = {};
+  for (const row of taskTagsRes.data ?? []) {
+    const { task_id, tag_id } = row as { task_id: string; tag_id: string };
+    if (!taskTagsMap[task_id]) taskTagsMap[task_id] = [];
+    taskTagsMap[task_id].push(tag_id);
+  }
+
   // Fetch the week
   const { data: weekData } = await supabase
     .from("weeks")
@@ -92,7 +109,7 @@ export default async function WeekPage({
   return (
     <SupabaseProvider>
       <WeekProvider initialData={initialData}>
-        <TasksProvider initialTasks={initialTasks}>
+        <TasksProvider initialTasks={initialTasks} initialTags={initialTags} initialTaskTags={taskTagsMap}>
           <Suspense>
             <WeekClient weekStart={weekStart} weekExists={!!week} />
           </Suspense>

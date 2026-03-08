@@ -30,6 +30,18 @@ export function taskSortCompare(a: { priority: number; sort_order: number }, b: 
   return a.sort_order - b.sort_order;
 }
 
+export const TAG_COLORS: Record<string, { bg: string; text: string }> = {
+  gray:   { bg: 'rgba(139,140,144,0.15)', text: '#8B8C90' },
+  red:    { bg: 'rgba(220,38,38,0.15)',    text: '#ef4444' },
+  orange: { bg: 'rgba(234,88,12,0.15)',    text: '#f97316' },
+  amber:  { bg: 'rgba(217,119,6,0.15)',    text: '#f59e0b' },
+  green:  { bg: 'rgba(34,197,94,0.15)',    text: '#22c55e' },
+  blue:   { bg: 'rgba(59,130,246,0.15)',   text: '#3b82f6' },
+  purple: { bg: 'rgba(132,140,208,0.15)',  text: '#848CD0' },
+  pink:   { bg: 'rgba(236,72,153,0.15)',   text: '#ec4899' },
+};
+export const TAG_COLOR_KEYS = Object.keys(TAG_COLORS);
+
 export const AUTOSAVE_DELAY = 1000;
 export const SEARCH_DEBOUNCE = 300;
 export const UNDO_TIMEOUT = 5000;

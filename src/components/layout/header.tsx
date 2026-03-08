@@ -4,6 +4,7 @@ import { Component, type ReactNode } from "react";
 import { WeekNav } from "./week-nav";
 import { CalendarPicker } from "./calendar-picker";
 import { GranolaSyncButton } from "@/components/granola/granola-sync-button";
+import { useTasks } from "@/components/providers/tasks-provider";
 
 class GranolaErrorBoundary extends Component<
   { children: ReactNode },
@@ -69,7 +70,7 @@ export function Header({
         </div>
       </div>
       {/* Tab bar */}
-      <div className="px-4 flex gap-0">
+      <div className="px-4 flex gap-0 items-center">
         {(["notes", "tasks"] as const).map((tab) => (
           <button
             key={tab}
@@ -84,7 +85,27 @@ export function Header({
             {tab}
           </button>
         ))}
+        {activeTab === "tasks" && <TaskStats />}
       </div>
     </header>
+  );
+}
+
+function TaskStats() {
+  const { tasks } = useTasks();
+  // Count only non-backlog tasks
+  const activeTasks = tasks.filter((t) => t.status !== "backlog");
+  const doneCount = activeTasks.filter((t) => t.status === "done").length;
+  const total = activeTasks.length;
+
+  if (total === 0) return null;
+
+  return (
+    <span
+      className="ml-auto text-[11px] tabular-nums"
+      style={{ color: 'var(--text-placeholder)' }}
+    >
+      {doneCount} of {total} done
+    </span>
   );
 }

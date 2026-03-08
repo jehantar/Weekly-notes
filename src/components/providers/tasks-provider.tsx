@@ -10,12 +10,13 @@ import {
   type ReactNode,
 } from "react";
 import { useSupabase } from "./supabase-provider";
-import type { Task, TaskStatus } from "@/lib/types/database";
+import type { Task, TaskStatus, Subtask, Tag } from "@/lib/types/database";
 import { UNDO_TIMEOUT } from "@/lib/constants";
 import { toast } from "sonner";
 
 type TasksContextType = {
   tasks: Task[];
+  subtasks: Record<string, Subtask[]>;
   addTask: (content: string, status?: TaskStatus) => Promise<Task | null>;
   updateTask: (id: string, updates: Partial<Task>) => Promise<void>;
   deleteTask: (id: string) => void;
@@ -23,6 +24,18 @@ type TasksContextType = {
   reorderTasks: (status: TaskStatus, orderedIds: string[]) => Promise<void>;
   linkMeeting: (taskId: string, meetingId: string | null, title: string | null, weekStart: string | null) => Promise<void>;
   clearCompleted: () => Promise<void>;
+  addSubtask: (taskId: string, content: string) => Promise<Subtask | null>;
+  updateSubtask: (id: string, taskId: string, updates: Partial<Subtask>) => Promise<void>;
+  deleteSubtask: (id: string, taskId: string) => Promise<void>;
+  toggleSubtask: (id: string, taskId: string) => Promise<void>;
+  reorderSubtasks: (taskId: string, orderedIds: string[]) => Promise<void>;
+  fetchSubtasks: (taskId: string) => Promise<void>;
+  tags: Tag[];
+  taskTags: Record<string, string[]>; // taskId -> tagId[]
+  createTag: (name: string, color: string) => Promise<Tag | null>;
+  deleteTag: (id: string) => Promise<void>;
+  addTagToTask: (taskId: string, tagId: string) => Promise<void>;
+  removeTagFromTask: (taskId: string, tagId: string) => Promise<void>;
 };
 
 const TasksContext = createContext<TasksContextType | undefined>(undefined);
@@ -30,16 +43,26 @@ const TasksContext = createContext<TasksContextType | undefined>(undefined);
 export function TasksProvider({
   children,
   initialTasks,
+  initialTags = [],
+  initialTaskTags = {},
 }: {
   children: ReactNode;
   initialTasks: Task[];
+  initialTags?: Tag[];
+  initialTaskTags?: Record<string, string[]>;
 }) {
   const supabase = useSupabase();
   const [tasks, setTasks] = useState(initialTasks);
+  const [subtasks, setSubtasks] = useState<Record<string, Subtask[]>>({});
+  const [tags, setTags] = useState<Tag[]>(initialTags);
+  const [taskTags, setTaskTags] = useState<Record<string, string[]>>(initialTaskTags);
 
   // Ref to avoid stale closures — always has latest tasks
   const tasksRef = useRef(tasks);
   useEffect(() => { tasksRef.current = tasks; }, [tasks]);
+
+  const subtasksRef = useRef(subtasks);
+  useEffect(() => { subtasksRef.current = subtasks; }, [subtasks]);
 
   const addTask = useCallback(
     async (content: string, status: TaskStatus = "backlog"): Promise<Task | null> => {
@@ -200,6 +223,111 @@ export function TasksProvider({
     [supabase]
   );
 
+  const fetchSubtasks = useCallback(
+    async (taskId: string) => {
+      const { data } = await supabase
+        .from("subtasks")
+        .select("*")
+        .eq("task_id", taskId)
+        .order("sort_order");
+      if (data) {
+        setSubtasks((prev) => ({ ...prev, [taskId]: data as Subtask[] }));
+      }
+    },
+    [supabase]
+  );
+
+  const addSubtask = useCallback(
+    async (taskId: string, content: string): Promise<Subtask | null> => {
+      const existing = subtasksRef.current[taskId] ?? [];
+      const maxOrder = existing.reduce((max, s) => Math.max(max, s.sort_order), -1);
+
+      const { data, error } = await supabase
+        .from("subtasks")
+        .insert({ task_id: taskId, content, sort_order: maxOrder + 1 })
+        .select()
+        .single();
+
+      if (error || !data) {
+        toast.error("Failed to add subtask");
+        return null;
+      }
+      const subtask = data as Subtask;
+      setSubtasks((prev) => ({
+        ...prev,
+        [taskId]: [...(prev[taskId] ?? []), subtask],
+      }));
+      return subtask;
+    },
+    [supabase]
+  );
+
+  const updateSubtask = useCallback(
+    async (id: string, taskId: string, updates: Partial<Subtask>) => {
+      setSubtasks((prev) => ({
+        ...prev,
+        [taskId]: (prev[taskId] ?? []).map((s) =>
+          s.id === id ? { ...s, ...updates } : s
+        ),
+      }));
+
+      const { error } = await supabase.from("subtasks").update(updates).eq("id", id);
+      if (error) toast.error("Failed to update subtask");
+    },
+    [supabase]
+  );
+
+  const deleteSubtask = useCallback(
+    async (id: string, taskId: string) => {
+      const snapshot = subtasksRef.current[taskId] ?? [];
+      setSubtasks((prev) => ({
+        ...prev,
+        [taskId]: (prev[taskId] ?? []).filter((s) => s.id !== id),
+      }));
+
+      const { error } = await supabase.from("subtasks").delete().eq("id", id);
+      if (error) {
+        setSubtasks((prev) => ({ ...prev, [taskId]: snapshot }));
+        toast.error("Failed to delete subtask");
+      }
+    },
+    [supabase]
+  );
+
+  const toggleSubtask = useCallback(
+    async (id: string, taskId: string) => {
+      const list = subtasksRef.current[taskId] ?? [];
+      const item = list.find((s) => s.id === id);
+      if (!item) return;
+      await updateSubtask(id, taskId, { completed: !item.completed });
+    },
+    [updateSubtask]
+  );
+
+  const reorderSubtasks = useCallback(
+    async (taskId: string, orderedIds: string[]) => {
+      const snapshot = subtasksRef.current[taskId] ?? [];
+      setSubtasks((prev) => {
+        const list = prev[taskId] ?? [];
+        const reordered = orderedIds.map((id, idx) => {
+          const s = list.find((x) => x.id === id);
+          return s ? { ...s, sort_order: idx } : s;
+        }).filter(Boolean) as Subtask[];
+        return { ...prev, [taskId]: reordered };
+      });
+
+      const updates = orderedIds.map((id, idx) =>
+        supabase.from("subtasks").update({ sort_order: idx }).eq("id", id)
+      );
+      const results = await Promise.all(updates);
+      if (results.some((r) => r.error)) {
+        setSubtasks((prev) => ({ ...prev, [taskId]: snapshot }));
+        toast.error("Failed to reorder subtasks");
+      }
+    },
+    [supabase]
+  );
+
   const clearCompleted = useCallback(async () => {
     const currentTasks = tasksRef.current;
     const completedTasks = currentTasks.filter((t) => t.status === "done");
@@ -219,10 +347,100 @@ export function TasksProvider({
     }
   }, [supabase]);
 
+  const createTag = useCallback(
+    async (name: string, color: string): Promise<Tag | null> => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      const { data, error } = await supabase
+        .from("tags")
+        .insert({ user_id: user.id, name, color })
+        .select()
+        .single();
+
+      if (error || !data) {
+        toast.error("Failed to create tag");
+        return null;
+      }
+      const tag = data as Tag;
+      setTags((prev) => [...prev, tag]);
+      return tag;
+    },
+    [supabase]
+  );
+
+  const deleteTag = useCallback(
+    async (id: string) => {
+      const tagsSnapshot = tags;
+      const taskTagsSnapshot = { ...taskTags };
+      setTags((prev) => prev.filter((t) => t.id !== id));
+      setTaskTags((prev) => {
+        const next = { ...prev };
+        for (const taskId in next) {
+          next[taskId] = next[taskId].filter((tid) => tid !== id);
+        }
+        return next;
+      });
+
+      const { error } = await supabase.from("tags").delete().eq("id", id);
+      if (error) {
+        setTags(tagsSnapshot);
+        setTaskTags(taskTagsSnapshot);
+        toast.error("Failed to delete tag");
+      }
+    },
+    [supabase, tags, taskTags]
+  );
+
+  const addTagToTask = useCallback(
+    async (taskId: string, tagId: string) => {
+      setTaskTags((prev) => ({
+        ...prev,
+        [taskId]: [...(prev[taskId] ?? []), tagId],
+      }));
+
+      const { error } = await supabase
+        .from("task_tags")
+        .insert({ task_id: taskId, tag_id: tagId });
+
+      if (error) {
+        setTaskTags((prev) => ({
+          ...prev,
+          [taskId]: (prev[taskId] ?? []).filter((id) => id !== tagId),
+        }));
+        toast.error("Failed to add tag");
+      }
+    },
+    [supabase]
+  );
+
+  const removeTagFromTask = useCallback(
+    async (taskId: string, tagId: string) => {
+      const prev = taskTags[taskId] ?? [];
+      setTaskTags((s) => ({
+        ...s,
+        [taskId]: (s[taskId] ?? []).filter((id) => id !== tagId),
+      }));
+
+      const { error } = await supabase
+        .from("task_tags")
+        .delete()
+        .eq("task_id", taskId)
+        .eq("tag_id", tagId);
+
+      if (error) {
+        setTaskTags((s) => ({ ...s, [taskId]: prev }));
+        toast.error("Failed to remove tag");
+      }
+    },
+    [supabase, taskTags]
+  );
+
   return (
     <TasksContext.Provider
       value={{
         tasks,
+        subtasks,
         addTask,
         updateTask,
         deleteTask,
@@ -230,6 +448,18 @@ export function TasksProvider({
         reorderTasks,
         linkMeeting,
         clearCompleted,
+        addSubtask,
+        updateSubtask,
+        deleteSubtask,
+        toggleSubtask,
+        reorderSubtasks,
+        fetchSubtasks,
+        tags,
+        taskTags,
+        createTag,
+        deleteTag,
+        addTagToTask,
+        removeTagFromTask,
       }}
     >
       {children}

@@ -6,7 +6,61 @@ import { CSS } from "@dnd-kit/utilities";
 import { useTasks } from "@/components/providers/tasks-provider";
 import { MeetingTagInput } from "./meeting-tag-input";
 import type { Task } from "@/lib/types/database";
-import { PRIORITY_LABELS, PRIORITY_DOT_COLORS, safePriority } from "@/lib/constants";
+import { PRIORITY_LABELS, PRIORITY_DOT_COLORS, safePriority, TAG_COLORS } from "@/lib/constants";
+
+function TagPills({ taskId }: { taskId: string }) {
+  const { tags, taskTags } = useTasks();
+  const assignedIds = taskTags[taskId] ?? [];
+  if (assignedIds.length === 0) return null;
+
+  const maxShow = 2;
+  const visible = assignedIds.slice(0, maxShow);
+  const overflow = assignedIds.length - maxShow;
+
+  return (
+    <>
+      {visible.map((tagId) => {
+        const tag = tags.find((t) => t.id === tagId);
+        if (!tag) return null;
+        const color = TAG_COLORS[tag.color] ?? TAG_COLORS.gray;
+        return (
+          <span
+            key={tag.id}
+            className="text-[10px] px-1 py-0.5"
+            style={{ backgroundColor: color.bg, color: color.text }}
+          >
+            {tag.name}
+          </span>
+        );
+      })}
+      {overflow > 0 && (
+        <span className="text-[10px]" style={{ color: 'var(--text-placeholder)' }}>
+          +{overflow}
+        </span>
+      )}
+    </>
+  );
+}
+
+function SubtaskPill({ taskId }: { taskId: string }) {
+  const { subtasks } = useTasks();
+  const list = subtasks[taskId];
+  if (!list || list.length === 0) return null;
+  const done = list.filter((s) => s.completed).length;
+  return (
+    <span
+      className="text-[10px] px-1 py-0.5 tabular-nums"
+      style={{
+        backgroundColor: done === list.length
+          ? 'color-mix(in srgb, #8baa8b 20%, transparent)'
+          : 'color-mix(in srgb, var(--accent-purple) 12%, transparent)',
+        color: done === list.length ? '#8baa8b' : 'var(--accent-purple)',
+      }}
+    >
+      {done}/{list.length}
+    </span>
+  );
+}
 
 const animateLayoutChanges: AnimateLayoutChanges = (args) =>
   defaultAnimateLayoutChanges({ ...args, wasDragging: true });
@@ -147,8 +201,11 @@ export function KanbanCard({
         )}
       </div>
 
-      {/* Right-aligned metadata: meeting tag, priority dot, delete */}
+      {/* Right-aligned metadata: subtask pill, meeting tag, priority dot, delete */}
       <div className="flex items-center gap-1.5 shrink-0">
+        <TagPills taskId={task.id} />
+        <SubtaskPill taskId={task.id} />
+
         {/* Meeting tag — inline compact */}
         <MeetingTagInput task={task} />
 

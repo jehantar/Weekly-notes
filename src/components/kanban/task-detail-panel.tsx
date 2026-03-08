@@ -6,6 +6,8 @@ import { useTasks } from "@/components/providers/tasks-provider";
 import { PropertyDropdown } from "./property-dropdown";
 import { TaskDescriptionEditor } from "./task-description-editor";
 import { MeetingTagInput } from "./meeting-tag-input";
+import { SubtaskList } from "./subtask-list";
+import { TagPicker } from "./tag-picker";
 import {
   TASK_STATUSES,
   TASK_STATUS_LABELS,
@@ -175,6 +177,12 @@ export function TaskDetailPanel({ task, onClose }: TaskDetailPanelProps) {
             <span style={{ color: 'var(--text-secondary)' }}>Meeting</span>
             <MeetingTagInput task={task} alwaysVisible />
           </div>
+          <TagPicker taskId={task.id} />
+        </div>
+
+        {/* Subtasks */}
+        <div className="mb-6">
+          <SubtaskList taskId={task.id} />
         </div>
 
         {/* Description */}

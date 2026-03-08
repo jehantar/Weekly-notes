@@ -18,6 +18,7 @@ import { KanbanColumn } from "./kanban-column";
 import { useTasks } from "@/components/providers/tasks-provider";
 import { TASK_STATUSES, PRIORITY_DOT_COLORS, safePriority, taskSortCompare } from "@/lib/constants";
 import { TaskDetailPanel } from "./task-detail-panel";
+import { TagFilterBar } from "./tag-filter-bar";
 import type { Task, TaskStatus } from "@/lib/types/database";
 
 function DragOverlayCard({ task }: { task: Task }) {
@@ -64,12 +65,28 @@ const dropAnimationConfig = {
 };
 
 export function KanbanBoard() {
-  const { tasks, moveTask, reorderTasks, updateTask, deleteTask } = useTasks();
+  const { tasks, taskTags, moveTask, reorderTasks, updateTask, deleteTask } = useTasks();
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [overColumn, setOverColumn] = useState<string | null>(null);
   const [focusedTaskId, setFocusedTaskId] = useState<string | null>(null);
   const [doneCollapsed, setDoneCollapsed] = useState(true);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [tagFilters, setTagFilters] = useState<Set<string>>(new Set());
+  const [shortcutsDismissed, setShortcutsDismissed] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return localStorage.getItem("shortcuts-dismissed") === "true";
+  });
+
+  const toggleTagFilter = useCallback((tagId: string) => {
+    setTagFilters((prev) => {
+      const next = new Set(prev);
+      if (next.has(tagId)) next.delete(tagId);
+      else next.add(tagId);
+      return next;
+    });
+  }, []);
+
+  const clearTagFilters = useCallback(() => setTagFilters(new Set()), []);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -77,8 +94,17 @@ export function KanbanBoard() {
   );
 
   const getColumnTasks = useCallback(
-    (status: TaskStatus) => tasks.filter((t) => t.status === status),
-    [tasks]
+    (status: TaskStatus) => {
+      let filtered = tasks.filter((t) => t.status === status);
+      if (tagFilters.size > 0) {
+        filtered = filtered.filter((t) => {
+          const tTags = taskTags[t.id] ?? [];
+          return tTags.some((id) => tagFilters.has(id));
+        });
+      }
+      return filtered;
+    },
+    [tasks, tagFilters, taskTags]
   );
 
   const allTaskIds = useMemo(() => {
@@ -281,8 +307,47 @@ export function KanbanBoard() {
 
   const selectedTask = selectedTaskId ? tasks.find((t) => t.id === selectedTaskId) : null;
 
+  const dismissShortcuts = () => {
+    setShortcutsDismissed(true);
+    localStorage.setItem("shortcuts-dismissed", "true");
+  };
+
   return (
     <>
+      <TagFilterBar
+        activeFilters={tagFilters}
+        onToggleFilter={toggleTagFilter}
+        onClearFilters={clearTagFilters}
+      />
+      {!shortcutsDismissed && (
+        <div
+          className="flex items-center justify-between px-3 py-1.5 text-[11px]"
+          style={{
+            backgroundColor: 'color-mix(in srgb, var(--accent-purple) 8%, var(--bg-column))',
+            borderBottom: '1px solid var(--border-card)',
+            color: 'var(--text-secondary)',
+          }}
+        >
+          <span>
+            <kbd className="px-1 py-0.5 mx-0.5" style={{ border: '1px solid var(--border-card)', color: 'var(--text-placeholder)' }}>Tab</kbd> navigate
+            <span className="mx-1.5" style={{ color: 'var(--border-card)' }}>|</span>
+            <kbd className="px-1 py-0.5 mx-0.5" style={{ border: '1px solid var(--border-card)', color: 'var(--text-placeholder)' }}>Space</kbd> open
+            <span className="mx-1.5" style={{ color: 'var(--border-card)' }}>|</span>
+            <kbd className="px-1 py-0.5 mx-0.5" style={{ border: '1px solid var(--border-card)', color: 'var(--text-placeholder)' }}>1-3</kbd> priority
+            <span className="mx-1.5" style={{ color: 'var(--border-card)' }}>|</span>
+            <kbd className="px-1 py-0.5 mx-0.5" style={{ border: '1px solid var(--border-card)', color: 'var(--text-placeholder)' }}>N</kbd> new task
+          </span>
+          <button
+            onClick={dismissShortcuts}
+            className="text-[10px] transition-colors"
+            style={{ color: 'var(--text-placeholder)' }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-placeholder)')}
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}

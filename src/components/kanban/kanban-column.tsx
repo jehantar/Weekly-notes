@@ -151,13 +151,18 @@ export function KanbanColumn({
 
         {sortedTasks.length === 0 && !adding && (
           <div
-            className="py-6 mx-1 flex items-center justify-center text-[11px]"
+            className="py-8 mx-1 flex flex-col items-center justify-center gap-1 text-[11px]"
             style={{
               color: 'var(--text-placeholder)',
               border: '1px dashed var(--border-card)',
             }}
           >
-            No tasks
+            <span>
+              {status === "backlog" && "No backlog items"}
+              {status === "todo" && "Nothing to do — nice!"}
+              {status === "in_progress" && "No tasks in progress"}
+              {status === "done" && "No completed tasks"}
+            </span>
           </div>
         )}
 

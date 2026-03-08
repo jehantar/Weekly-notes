@@ -3,8 +3,10 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useSupabase } from "@/components/providers/supabase-provider";
+import { useTasks } from "@/components/providers/tasks-provider";
 import { SEARCH_DEBOUNCE, DAY_LABELS } from "@/lib/constants";
 import { format, parseISO } from "date-fns";
+import { toast } from "sonner";
 
 type SearchResult = {
   item_type: string;
@@ -27,6 +29,7 @@ export function SearchCommand({
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const supabase = useSupabase();
+  const { addTask } = useTasks();
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -72,6 +75,17 @@ export function SearchCommand({
       onClose();
     } else if (result.week_start) {
       router.push(`/week/${result.week_start}`);
+      onClose();
+    }
+  };
+
+  const handleQuickAdd = async () => {
+    const trimmed = query.trim();
+    if (!trimmed) return;
+    const task = await addTask(trimmed, "backlog");
+    if (task) {
+      toast.success("Task created in Backlog");
+      onNavigateToTasks?.();
       onClose();
     }
   };
@@ -183,9 +197,24 @@ export function SearchCommand({
         )}
 
         {query && !loading && results.length === 0 && (
-          <div className="px-4 py-6 text-center text-xs" style={{ color: 'var(--text-placeholder)' }}>
+          <div className="px-4 py-4 text-center text-xs" style={{ color: 'var(--text-placeholder)' }}>
             No results found
           </div>
+        )}
+
+        {/* Quick Add option */}
+        {query.trim() && !loading && (
+          <button
+            onClick={handleQuickAdd}
+            className="w-full text-left px-4 py-2.5 text-xs transition-colors duration-100 flex items-center gap-2"
+            style={{ borderTop: '1px solid var(--border-card)' }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-hover)')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+          >
+            <span style={{ color: 'var(--accent-purple)' }}>+</span>
+            <span style={{ color: 'var(--text-secondary)' }}>Create task:</span>
+            <span style={{ color: 'var(--text-primary)' }}>{query.trim()}</span>
+          </button>
         )}
       </div>
     </div>
