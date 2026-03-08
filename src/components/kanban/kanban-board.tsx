@@ -157,6 +157,15 @@ export function KanbanBoard() {
         return;
       }
 
+      // N works globally — no focused task required
+      if (e.key === "n") {
+        e.preventDefault();
+        setFocusedTaskId(null);
+        const backlogAddBtn = document.querySelector<HTMLButtonElement>('[data-add-backlog]');
+        backlogAddBtn?.click();
+        return;
+      }
+
       if (!focusedTaskId) return;
       const task = tasks.find((t) => t.id === focusedTaskId);
       if (!task) return;
@@ -187,14 +196,6 @@ export function KanbanBoard() {
         if (task.status !== "done") {
           moveTask(task.id, "done", 0);
         }
-        return;
-      }
-
-      if (e.key === "n") {
-        e.preventDefault();
-        setFocusedTaskId(null);
-        const backlogAddBtn = document.querySelector<HTMLButtonElement>('[data-add-backlog]');
-        backlogAddBtn?.click();
         return;
       }
 
