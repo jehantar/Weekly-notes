@@ -42,6 +42,9 @@ export const TAG_COLORS: Record<string, { bg: string; text: string }> = {
 };
 export const TAG_COLOR_KEYS = Object.keys(TAG_COLORS);
 
+export const UPLOAD_ALLOWED_TYPES = ["image/png", "image/jpeg", "image/gif", "image/webp"];
+export const UPLOAD_MAX_SIZE = 5 * 1024 * 1024; // 5MB
+
 export const AUTOSAVE_DELAY = 1000;
 export const SEARCH_DEBOUNCE = 300;
 export const UNDO_TIMEOUT = 5000;

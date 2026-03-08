@@ -11,22 +11,23 @@ export async function POST(request: Request) {
 
   const formData = await request.formData();
   const file = formData.get("file") as File | null;
-  const taskId = formData.get("taskId") as string | null;
+  const weekId = formData.get("weekId") as string | null;
+  const dayOfWeek = formData.get("dayOfWeek") as string | null;
 
-  if (!file || !taskId) {
-    return NextResponse.json({ error: "Missing file or taskId" }, { status: 400 });
+  if (!file || !weekId || dayOfWeek === null) {
+    return NextResponse.json({ error: "Missing file, weekId, or dayOfWeek" }, { status: 400 });
   }
 
-  // Verify task belongs to authenticated user
-  const { data: task } = await supabase
-    .from("tasks")
+  // Verify week belongs to authenticated user
+  const { data: week } = await supabase
+    .from("weeks")
     .select("id")
-    .eq("id", taskId)
+    .eq("id", weekId)
     .eq("user_id", user.id)
     .single();
 
-  if (!task) {
-    return NextResponse.json({ error: "Task not found" }, { status: 404 });
+  if (!week) {
+    return NextResponse.json({ error: "Week not found" }, { status: 404 });
   }
 
   if (!UPLOAD_ALLOWED_TYPES.includes(file.type)) {
@@ -39,7 +40,7 @@ export async function POST(request: Request) {
 
   const timestamp = Date.now();
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-  const path = `${user.id}/${taskId}/${timestamp}-${safeName}`;
+  const path = `${user.id}/notes/${weekId}/${dayOfWeek}/${timestamp}-${safeName}`;
 
   const buffer = Buffer.from(await file.arrayBuffer());
   const { error: uploadError } = await supabase.storage

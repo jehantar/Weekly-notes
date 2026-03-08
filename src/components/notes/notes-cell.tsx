@@ -5,10 +5,15 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import Placeholder from "@tiptap/extension-placeholder";
+import Image from "@tiptap/extension-image";
+import Link from "@tiptap/extension-link";
+import ListKeymap from "@tiptap/extension-list-keymap";
 import { useWeek } from "@/components/providers/week-provider";
+import { useTasks } from "@/components/providers/tasks-provider";
 import { NoteToolbar } from "./note-toolbar";
 import { AUTOSAVE_DELAY } from "@/lib/constants";
 import { marked } from "marked";
+import { toast } from "sonner";
 
 /** Convert legacy markdown content to HTML for TipTap */
 function markdownToHtml(content: string): string {
@@ -17,7 +22,8 @@ function markdownToHtml(content: string): string {
 }
 
 export function NotesCell({ dayOfWeek }: { dayOfWeek: number }) {
-  const { notes, upsertNote } = useWeek();
+  const { notes, upsertNote, weekId } = useWeek();
+  const { addTask } = useTasks();
   const note = notes.find((n) => n.day_of_week === dayOfWeek);
   const [focused, setFocused] = useState(false);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -34,6 +40,29 @@ export function NotesCell({ dayOfWeek }: { dayOfWeek: number }) {
     [dayOfWeek, upsertNote]
   );
 
+  const uploadImage = useCallback(
+    async (file: File): Promise<string | null> => {
+      if (!weekId) return null;
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("weekId", weekId);
+      formData.append("dayOfWeek", String(dayOfWeek));
+
+      try {
+        const res = await fetch("/api/notes/upload-image", {
+          method: "POST",
+          body: formData,
+        });
+        if (!res.ok) return null;
+        const { url } = await res.json();
+        return url;
+      } catch {
+        return null;
+      }
+    },
+    [weekId, dayOfWeek]
+  );
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -43,6 +72,13 @@ export function NotesCell({ dayOfWeek }: { dayOfWeek: number }) {
       Placeholder.configure({
         placeholder: "Click to add notes...",
       }),
+      Image,
+      Link.configure({
+        openOnClick: true,
+        autolink: true,
+        HTMLAttributes: { target: "_blank", rel: "noopener noreferrer" },
+      }),
+      ListKeymap,
     ],
     content: markdownToHtml(note?.content ?? ""),
     editorProps: {
@@ -51,10 +87,30 @@ export function NotesCell({ dayOfWeek }: { dayOfWeek: number }) {
       },
       handleKeyDown: (_view, event) => {
         if (event.key === "Escape") {
-          // Revert to saved content
+          event.stopPropagation();
           editor?.commands.setContent(savedContentRef.current);
           (document.activeElement as HTMLElement)?.blur();
           return true;
+        }
+        return false;
+      },
+      handlePaste: (_view, event) => {
+        const items = event.clipboardData?.items;
+        if (!items) return false;
+
+        for (const item of items) {
+          if (item.type.startsWith("image/")) {
+            event.preventDefault();
+            const file = item.getAsFile();
+            if (!file) return true;
+
+            uploadImage(file).then((url) => {
+              if (url && editor) {
+                editor.chain().focus().setImage({ src: url }).run();
+              }
+            });
+            return true;
+          }
         }
         return false;
       },
@@ -73,6 +129,17 @@ export function NotesCell({ dayOfWeek }: { dayOfWeek: number }) {
     },
   });
 
+  const handleCreateTask = useCallback(() => {
+    if (!editor) return;
+    const { from, to, empty } = editor.state.selection;
+    if (empty) return;
+    const text = editor.state.doc.textBetween(from, to, " ");
+    if (!text.trim()) return;
+    addTask(text.trim(), "backlog").then((task) => {
+      if (task) toast.success("Task created from note");
+    });
+  }, [editor, addTask]);
+
   // Sync external content changes (e.g. from other tabs)
   useEffect(() => {
     if (!editor || editor.isFocused) return;
@@ -87,7 +154,7 @@ export function NotesCell({ dayOfWeek }: { dayOfWeek: number }) {
     <div className="text-xs">
       {focused && editor && (
         <div style={{ animation: 'fadeSlideIn 150ms ease-out' }}>
-          <NoteToolbar editor={editor} />
+          <NoteToolbar editor={editor} onCreateTask={handleCreateTask} />
         </div>
       )}
       <EditorContent editor={editor} />

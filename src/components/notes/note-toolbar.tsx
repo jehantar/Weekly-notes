@@ -2,7 +2,12 @@
 
 import type { Editor } from "@tiptap/react";
 
-export function NoteToolbar({ editor }: { editor: Editor }) {
+type NoteToolbarProps = {
+  editor: Editor;
+  onCreateTask?: () => void;
+};
+
+export function NoteToolbar({ editor, onCreateTask }: NoteToolbarProps) {
   const btn = (
     label: string,
     isActive: boolean,
@@ -36,6 +41,8 @@ export function NoteToolbar({ editor }: { editor: Editor }) {
     </button>
   );
 
+  const hasSelection = !editor.state.selection.empty;
+
   return (
     <div className="flex items-center gap-0.5 mb-1">
       {btn("B", editor.isActive("bold"), () =>
@@ -52,6 +59,25 @@ export function NoteToolbar({ editor }: { editor: Editor }) {
       )}
       {btn("1.", editor.isActive("orderedList"), () =>
         editor.chain().focus().toggleOrderedList().run()
+      )}
+      {btn("🔗", editor.isActive("link"), () => {
+        if (editor.isActive("link")) {
+          editor.chain().focus().unsetLink().run();
+          return;
+        }
+        const url = window.prompt("Enter URL:");
+        if (url) {
+          editor.chain().focus().setLink({ href: url }).run();
+        }
+      })}
+      {onCreateTask && hasSelection && (
+        <>
+          <div
+            className="w-px h-4 mx-1"
+            style={{ backgroundColor: 'var(--border-card)' }}
+          />
+          {btn("Task", false, onCreateTask)}
+        </>
       )}
     </div>
   );
