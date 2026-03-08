@@ -1,7 +1,7 @@
 -- Tags table: user-scoped colored labels
 CREATE TABLE tags (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id TEXT NOT NULL,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   color TEXT NOT NULL DEFAULT 'gray',
   created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
@@ -24,8 +24,8 @@ ALTER TABLE tags ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users can manage their own tags"
   ON tags FOR ALL
-  USING (user_id = auth.uid()::text)
-  WITH CHECK (user_id = auth.uid()::text);
+  USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
 
 -- RLS for task_tags
 ALTER TABLE task_tags ENABLE ROW LEVEL SECURITY;
@@ -36,13 +36,13 @@ CREATE POLICY "Users can manage their own task_tags"
     EXISTS (
       SELECT 1 FROM tasks
       WHERE tasks.id = task_tags.task_id
-        AND tasks.user_id = auth.uid()::text
+        AND tasks.user_id = auth.uid()
     )
   )
   WITH CHECK (
     EXISTS (
       SELECT 1 FROM tasks
       WHERE tasks.id = task_tags.task_id
-        AND tasks.user_id = auth.uid()::text
+        AND tasks.user_id = auth.uid()
     )
   );

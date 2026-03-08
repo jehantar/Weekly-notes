@@ -21,13 +21,13 @@ CREATE POLICY "Users can manage their own subtasks"
     EXISTS (
       SELECT 1 FROM tasks
       WHERE tasks.id = subtasks.task_id
-        AND tasks.user_id = auth.uid()::text
+        AND tasks.user_id = auth.uid()
     )
   )
   WITH CHECK (
     EXISTS (
       SELECT 1 FROM tasks
       WHERE tasks.id = subtasks.task_id
-        AND tasks.user_id = auth.uid()::text
+        AND tasks.user_id = auth.uid()
     )
   );
