@@ -69,16 +69,11 @@ export function KanbanBoard() {
   const { tasks, taskTags, moveTask, reorderTasks } = useTasks();
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [overColumn, setOverColumn] = useState<string | null>(null);
-  const [focusedTaskId, setFocusedTaskId] = useState<string | null>(null);
   const [doneCollapsed, setDoneCollapsed] = useState(true);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [bulkSelectedIds, setBulkSelectedIds] = useState<Set<string>>(new Set());
   const lastClickedRef = useRef<string | null>(null);
   const [tagFilters, setTagFilters] = useState<Set<string>>(new Set());
-  const [shortcutsDismissed, setShortcutsDismissed] = useState(() => {
-    if (typeof window === "undefined") return true;
-    return localStorage.getItem("shortcuts-dismissed") === "true";
-  });
 
   const toggleTagFilter = useCallback((tagId: string) => {
     setTagFilters((prev) => {
@@ -149,12 +144,11 @@ export function KanbanBoard() {
     [tasks, tagFilters, taskTags]
   );
 
-  // Keyboard shortcuts (minimal set to avoid interfering with typing)
+  // Keyboard shortcuts (minimal — just Escape to dismiss)
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
       const isInput = target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable;
-
       if (isInput) return;
 
       if (e.key === "Escape") {
@@ -162,24 +156,13 @@ export function KanbanBoard() {
           clearBulkSelection();
         } else if (selectedTaskId) {
           setSelectedTaskId(null);
-        } else {
-          setFocusedTaskId(null);
         }
-        return;
-      }
-
-      if (!focusedTaskId) return;
-
-      if (e.key === "Enter") {
-        e.preventDefault();
-        setSelectedTaskId(focusedTaskId);
-        return;
       }
     };
 
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [focusedTaskId, selectedTaskId, bulkSelectedIds, clearBulkSelection]);
+  }, [selectedTaskId, bulkSelectedIds, clearBulkSelection]);
 
   const findColumn = useCallback(
     (id: string): TaskStatus | null => {
@@ -194,7 +177,6 @@ export function KanbanBoard() {
     (event: DragStartEvent) => {
       const task = tasks.find((t) => t.id === event.active.id);
       setActiveTask(task ?? null);
-      setFocusedTaskId(null);
     },
     [tasks]
   );
@@ -271,11 +253,6 @@ export function KanbanBoard() {
 
   const selectedTask = selectedTaskId ? tasks.find((t) => t.id === selectedTaskId) : null;
 
-  const dismissShortcuts = () => {
-    setShortcutsDismissed(true);
-    localStorage.setItem("shortcuts-dismissed", "true");
-  };
-
   return (
     <>
       <TagFilterBar
@@ -283,31 +260,6 @@ export function KanbanBoard() {
         onToggleFilter={toggleTagFilter}
         onClearFilters={clearTagFilters}
       />
-      {!shortcutsDismissed && (
-        <div
-          className="flex items-center justify-between px-3 py-1.5 text-[11px]"
-          style={{
-            backgroundColor: 'color-mix(in srgb, var(--accent-purple) 8%, var(--bg-column))',
-            borderBottom: '1px solid var(--border-card)',
-            color: 'var(--text-secondary)',
-          }}
-        >
-          <span>
-            <kbd className="px-1 py-0.5 mx-0.5" style={{ border: '1px solid var(--border-card)', color: 'var(--text-placeholder)' }}>Esc</kbd> close
-            <span className="mx-1.5" style={{ color: 'var(--border-card)' }}>|</span>
-            <kbd className="px-1 py-0.5 mx-0.5" style={{ border: '1px solid var(--border-card)', color: 'var(--text-placeholder)' }}>Enter</kbd> open task
-          </span>
-          <button
-            onClick={dismissShortcuts}
-            className="text-[10px] transition-colors"
-            style={{ color: 'var(--text-placeholder)' }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-placeholder)')}
-          >
-            Dismiss
-          </button>
-        </div>
-      )}
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
@@ -322,7 +274,6 @@ export function KanbanBoard() {
               status={status}
               tasks={getColumnTasks(status)}
               isOver={overColumn === status}
-              focusedTaskId={focusedTaskId}
               onSelectTask={bulkSelectedIds.size > 0 ? undefined : setSelectedTaskId}
               selectedTaskIds={bulkSelectedIds}
               onToggleSelect={handleToggleSelect}

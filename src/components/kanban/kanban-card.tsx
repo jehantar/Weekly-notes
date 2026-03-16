@@ -68,14 +68,12 @@ const animateLayoutChanges: AnimateLayoutChanges = (args) =>
 
 export function KanbanCard({
   task,
-  isFocused,
   isSelected,
   selectionActive,
   onSelectTask,
   onToggleSelect,
 }: {
   task: Task;
-  isFocused?: boolean;
   isSelected?: boolean;
   selectionActive?: boolean;
   onSelectTask?: (taskId: string) => void;
@@ -114,10 +112,6 @@ export function KanbanCard({
           opacity: 1,
           borderBottom: '1px solid var(--border-card)',
         }),
-    ...(isFocused && !isDragging && !isSelected && {
-      outline: '1px solid var(--accent-purple)',
-      outlineOffset: '-1px',
-    }),
     ...(isSelected && !isDragging && {
       borderLeft: '3px solid var(--accent-purple)',
       backgroundColor: 'color-mix(in srgb, var(--accent-purple) 8%, var(--bg-column))',

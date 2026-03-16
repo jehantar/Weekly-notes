@@ -13,7 +13,6 @@ export function KanbanColumn({
   status,
   tasks,
   isOver,
-  focusedTaskId,
   isCollapsed,
   onToggleCollapse,
   onSelectTask,
@@ -23,7 +22,6 @@ export function KanbanColumn({
   status: TaskStatus;
   tasks: Task[];
   isOver: boolean;
-  focusedTaskId?: string | null;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
   onSelectTask?: (taskId: string) => void;
@@ -147,7 +145,6 @@ export function KanbanColumn({
             <KanbanCard
               key={task.id}
               task={task}
-              isFocused={focusedTaskId === task.id}
               isSelected={selectedTaskIds?.has(task.id)}
               selectionActive={(selectedTaskIds?.size ?? 0) > 0}
               onSelectTask={onSelectTask}
@@ -184,7 +181,6 @@ export function KanbanColumn({
           onClick={() => setAdding(true)}
           className="w-full px-3 py-2 text-xs text-left transition-opacity"
           style={{ color: 'var(--text-placeholder)' }}
-          {...(status === "backlog" ? { "data-add-backlog": true } : {})}
         >
           <span className="opacity-0 group-hover/col:opacity-100 transition-opacity">
             + Add task
