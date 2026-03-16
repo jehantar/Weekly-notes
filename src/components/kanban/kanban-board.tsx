@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -66,7 +66,7 @@ const dropAnimationConfig = {
 };
 
 export function KanbanBoard() {
-  const { tasks, taskTags, moveTask, reorderTasks, updateTask, deleteTask } = useTasks();
+  const { tasks, taskTags, moveTask, reorderTasks } = useTasks();
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [overColumn, setOverColumn] = useState<string | null>(null);
   const [focusedTaskId, setFocusedTaskId] = useState<string | null>(null);
@@ -149,46 +149,13 @@ export function KanbanBoard() {
     [tasks, tagFilters, taskTags]
   );
 
-  const allTaskIds = useMemo(() => {
-    const ids: string[] = [];
-    for (const status of TASK_STATUSES) {
-      const columnTasks = tasks
-        .filter((t) => t.status === status)
-        .sort(taskSortCompare);
-      ids.push(...columnTasks.map((t) => t.id));
-    }
-    return ids;
-  }, [tasks]);
-
-  // Keyboard shortcuts
+  // Keyboard shortcuts (minimal set to avoid interfering with typing)
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
       const isInput = target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable;
 
       if (isInput) return;
-
-      if (e.key === "Tab") {
-        if (allTaskIds.length === 0) return;
-
-        if (!focusedTaskId) {
-          // Bootstrap: first Tab press focuses the first task
-          e.preventDefault();
-          setFocusedTaskId(allTaskIds[0]);
-          return;
-        }
-
-        e.preventDefault();
-        const currentIndex = allTaskIds.indexOf(focusedTaskId);
-        if (e.shiftKey) {
-          const prevIndex = currentIndex <= 0 ? allTaskIds.length - 1 : currentIndex - 1;
-          setFocusedTaskId(allTaskIds[prevIndex]);
-        } else {
-          const nextIndex = currentIndex >= allTaskIds.length - 1 ? 0 : currentIndex + 1;
-          setFocusedTaskId(allTaskIds[nextIndex]);
-        }
-        return;
-      }
 
       if (e.key === "Escape") {
         if (bulkSelectedIds.size > 0) {
@@ -201,66 +168,18 @@ export function KanbanBoard() {
         return;
       }
 
-      // N works globally — no focused task required
-      if (e.key === "n") {
-        e.preventDefault();
-        setFocusedTaskId(null);
-        const backlogAddBtn = document.querySelector<HTMLButtonElement>('[data-add-backlog]');
-        backlogAddBtn?.click();
-        return;
-      }
-
       if (!focusedTaskId) return;
-      const task = tasks.find((t) => t.id === focusedTaskId);
-      if (!task) return;
-
-      if (e.key === "1" || e.key === "2" || e.key === "3") {
-        e.preventDefault();
-        const priority = parseInt(e.key) - 1;
-        updateTask(task.id, { priority });
-        return;
-      }
-
-      if (e.key === "Delete") {
-        e.preventDefault();
-        const currentIndex = allTaskIds.indexOf(focusedTaskId);
-        deleteTask(task.id);
-        const remaining = allTaskIds.filter((id) => id !== focusedTaskId);
-        if (remaining.length > 0) {
-          const nextIndex = Math.min(currentIndex, remaining.length - 1);
-          setFocusedTaskId(remaining[nextIndex]);
-        } else {
-          setFocusedTaskId(null);
-        }
-        return;
-      }
-
-      if (e.key === "d") {
-        e.preventDefault();
-        if (task.status !== "done") {
-          moveTask(task.id, "done", 0);
-        }
-        return;
-      }
-
-      if (e.key === " ") {
-        e.preventDefault();
-        setSelectedTaskId(task.id);
-        return;
-      }
 
       if (e.key === "Enter") {
         e.preventDefault();
-        const cardEl = document.querySelector(`[data-task-id="${focusedTaskId}"]`);
-        const textEl = cardEl?.querySelector<HTMLElement>('[data-task-text]');
-        textEl?.click();
+        setSelectedTaskId(focusedTaskId);
         return;
       }
     };
 
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [allTaskIds, focusedTaskId, selectedTaskId, bulkSelectedIds, clearBulkSelection, tasks, updateTask, deleteTask, moveTask]);
+  }, [focusedTaskId, selectedTaskId, bulkSelectedIds, clearBulkSelection]);
 
   const findColumn = useCallback(
     (id: string): TaskStatus | null => {
@@ -374,13 +293,9 @@ export function KanbanBoard() {
           }}
         >
           <span>
-            <kbd className="px-1 py-0.5 mx-0.5" style={{ border: '1px solid var(--border-card)', color: 'var(--text-placeholder)' }}>Tab</kbd> navigate
+            <kbd className="px-1 py-0.5 mx-0.5" style={{ border: '1px solid var(--border-card)', color: 'var(--text-placeholder)' }}>Esc</kbd> close
             <span className="mx-1.5" style={{ color: 'var(--border-card)' }}>|</span>
-            <kbd className="px-1 py-0.5 mx-0.5" style={{ border: '1px solid var(--border-card)', color: 'var(--text-placeholder)' }}>Space</kbd> open
-            <span className="mx-1.5" style={{ color: 'var(--border-card)' }}>|</span>
-            <kbd className="px-1 py-0.5 mx-0.5" style={{ border: '1px solid var(--border-card)', color: 'var(--text-placeholder)' }}>1-3</kbd> priority
-            <span className="mx-1.5" style={{ color: 'var(--border-card)' }}>|</span>
-            <kbd className="px-1 py-0.5 mx-0.5" style={{ border: '1px solid var(--border-card)', color: 'var(--text-placeholder)' }}>N</kbd> new task
+            <kbd className="px-1 py-0.5 mx-0.5" style={{ border: '1px solid var(--border-card)', color: 'var(--text-placeholder)' }}>Enter</kbd> open task
           </span>
           <button
             onClick={dismissShortcuts}
