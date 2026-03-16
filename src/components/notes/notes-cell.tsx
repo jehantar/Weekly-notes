@@ -21,7 +21,15 @@ function markdownToHtml(content: string): string {
   return marked.parse(content, { async: false }) as string;
 }
 
-export function NotesCell({ dayOfWeek }: { dayOfWeek: number }) {
+export function NotesCell({
+  dayOfWeek,
+  onFocusDay,
+  onBlurDay,
+}: {
+  dayOfWeek: number;
+  onFocusDay?: (day: number) => void;
+  onBlurDay?: () => void;
+}) {
   const { notes, upsertNote, weekId } = useWeek();
   const { addTask } = useTasks();
   const note = notes.find((n) => n.day_of_week === dayOfWeek);
@@ -121,9 +129,13 @@ export function NotesCell({ dayOfWeek }: { dayOfWeek: number }) {
         save(e.getHTML());
       }, AUTOSAVE_DELAY);
     },
-    onFocus: () => setFocused(true),
+    onFocus: () => {
+      setFocused(true);
+      onFocusDay?.(dayOfWeek);
+    },
     onBlur: () => {
       setFocused(false);
+      onBlurDay?.();
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
       if (editor) save(editor.getHTML());
     },
