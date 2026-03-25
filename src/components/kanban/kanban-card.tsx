@@ -194,6 +194,12 @@ export function KanbanCard({
       onMouseLeave={cancelPreview}
       {...attributes}
       {...listeners}
+      onKeyDown={(e) => {
+        // Prevent space from activating the card (default role="button" behaviour)
+        if (e.key === ' ' || e.key === 'Space') return;
+        // Forward to dnd-kit's listener if present
+        (listeners as Record<string, Function>)?.onKeyDown?.(e);
+      }}
     >
       {/* Content — takes available space */}
       <div className="flex-1 min-w-0">
