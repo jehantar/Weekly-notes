@@ -9,7 +9,7 @@ import { UpdatesView } from "@/components/updates/updates-view";
 import { CreateWeekModal } from "@/components/modals/create-week-modal";
 import { SearchCommand } from "@/components/layout/search-command";
 import { parseWeekStart, addWeeks as addWeeksUtil, formatWeekStart } from "@/lib/utils/dates";
-import { toast } from "sonner";
+
 
 export function WeekClient({
   weekStart,
@@ -52,20 +52,6 @@ export function WeekClient({
       setShowCreateModal(true);
     }
   }, [weekExists]);
-
-  // Handle Granola OAuth redirect params
-  useEffect(() => {
-    const granola = searchParams.get("granola");
-    const granolaError = searchParams.get("granola_error");
-
-    if (granola === "connected") {
-      toast.success("Granola connected successfully");
-      window.history.replaceState({}, "", `/week/${weekStart}`);
-    } else if (granolaError) {
-      toast.error(`Granola: ${granolaError}`);
-      window.history.replaceState({}, "", `/week/${weekStart}`);
-    }
-  }, [searchParams, weekStart]);
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {

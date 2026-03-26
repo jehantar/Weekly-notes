@@ -3,7 +3,6 @@
 import { useWeek } from "@/components/providers/week-provider";
 import { useTasks } from "@/components/providers/tasks-provider";
 import { InlineEdit } from "@/components/shared/inline-edit";
-import { MarkdownBlock } from "@/components/shared/markdown-render";
 import type { Meeting } from "@/lib/types/database";
 import { toast } from "sonner";
 
@@ -15,7 +14,7 @@ type MeetingItemProps = {
 };
 
 export function MeetingItem({ meeting, autoEdit, onAddNext, onBackspace }: MeetingItemProps) {
-  const { updateMeeting, deleteMeeting, unlinkGranolaMeeting, week } = useWeek();
+  const { updateMeeting, deleteMeeting, week } = useWeek();
   const { addTask, linkMeeting } = useTasks();
 
   const handleCreateTask = async () => {
@@ -49,35 +48,6 @@ export function MeetingItem({ meeting, autoEdit, onAddNext, onBackspace }: Meeti
             <span className="font-bold underline">{v}</span>
           )}
         />
-        {meeting.granola_note_id && (
-          <div className="mt-0.5 ml-0.5">
-            {meeting.granola_summary && (
-              <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                <MarkdownBlock content={meeting.granola_summary} />
-              </div>
-            )}
-            <span className="flex items-center gap-2">
-              <a
-                href={meeting.granola_note_id}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs hover:underline"
-                style={{ color: 'var(--accent-purple)' }}
-              >
-                View in Granola
-              </a>
-              <button
-                onClick={() => unlinkGranolaMeeting(meeting.id)}
-                className="text-xs transition-colors"
-                style={{ color: 'var(--text-placeholder)' }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = '#dc2626')}
-                onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-placeholder)')}
-              >
-                Unlink
-              </button>
-            </span>
-          </div>
-        )}
       </div>
       <button
         onClick={handleCreateTask}

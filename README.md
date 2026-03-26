@@ -26,12 +26,6 @@ A personal productivity app for tracking meetings, tasks, and notes in a weekly 
 - **Priority levels** -- color-coded Low / Medium / High
 - **Keyboard shortcuts** -- navigate and create tasks from the keyboard
 
-### Calendar Integration (Granola)
-- **OAuth connection** -- securely connect your calendar via Granola
-- **One-click sync** -- pull meetings into the current week
-- **AI meeting summaries** -- auto-generate bullet-point summaries
-- **Duplicate detection** -- skip already-synced meetings
-
 ### UI
 - **Dark mode** -- Linear-inspired dark theme with purple accents
 - **View tabs** -- toggle between Notes and Tasks views
@@ -46,7 +40,6 @@ A personal productivity app for tracking meetings, tasks, and notes in a weekly 
 - **TypeScript 5**
 - **TipTap** (rich text editing)
 - **dnd-kit** (drag and drop)
-- **Vercel AI SDK + OpenRouter** (meeting summaries)
 
 ## Setup
 
