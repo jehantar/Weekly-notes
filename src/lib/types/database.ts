@@ -233,6 +233,36 @@ export interface Database {
         };
         Relationships: [];
       };
+      question_resolutions: {
+        Row: {
+          id: string;
+          user_id: string;
+          week_start: string;
+          question_hash: string;
+          question_text: string;
+          resolution: string | null;
+          resolved_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          week_start: string;
+          question_hash: string;
+          question_text: string;
+          resolution?: string | null;
+          resolved_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          week_start?: string;
+          question_hash?: string;
+          question_text?: string;
+          resolution?: string | null;
+          resolved_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -265,3 +295,4 @@ export type Subtask = Database["public"]["Tables"]["subtasks"]["Row"];
 export type Tag = Database["public"]["Tables"]["tags"]["Row"];
 export type TaskTag = Database["public"]["Tables"]["task_tags"]["Row"];
 export type WeekSummary = Database["public"]["Tables"]["week_summaries"]["Row"];
+export type QuestionResolution = Database["public"]["Tables"]["question_resolutions"]["Row"];

@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { useSupabase } from "./supabase-provider";
-import type { Week, Meeting, Note, WeekSummary } from "@/lib/types/database";
+import type { Week, Meeting, Note, WeekSummary, QuestionResolution } from "@/lib/types/database";
 import { UNDO_TIMEOUT } from "@/lib/constants";
 import { toast } from "sonner";
 
@@ -17,6 +17,7 @@ export type WeekData = {
   meetings: Meeting[];
   notes: Note[];
   summary: WeekSummary | null;
+  questionResolutions: QuestionResolution[];
 };
 
 type WeekContextType = WeekData & {
@@ -32,6 +33,11 @@ type WeekContextType = WeekData & {
   upsertSummary: (content: string) => Promise<void>;
   // Week
   setWeekData: (data: WeekData) => void;
+  // Question resolutions
+  questionResolutions: QuestionResolution[];
+  resolveQuestion: (weekStart: string, questionText: string, questionHash: string, resolution?: string) => void;
+  unresolveQuestion: (weekStart: string, questionHash: string) => void;
+  updateResolutionText: (questionHash: string, resolution: string) => void;
 };
 
 const WeekContext = createContext<WeekContextType | undefined>(undefined);
@@ -48,6 +54,7 @@ export function WeekProvider({
   const [meetings, setMeetings] = useState(initialData.meetings);
   const [notes, setNotes] = useState(initialData.notes);
   const [summary, setSummary] = useState(initialData.summary);
+  const [questionResolutions, setQuestionResolutions] = useState(initialData.questionResolutions);
 
   const weekId = week?.id ?? null;
 
@@ -56,6 +63,7 @@ export function WeekProvider({
     setMeetings(data.meetings);
     setNotes(data.notes);
     setSummary(data.summary);
+    setQuestionResolutions(data.questionResolutions);
   }, []);
 
   const refreshMeetings = useCallback(async () => {
@@ -245,6 +253,100 @@ export function WeekProvider({
     [supabase, week, summary]
   );
 
+  // --- Question Resolutions ---
+
+  const resolveQuestion = useCallback(
+    (weekStart: string, questionText: string, questionHash: string, resolution?: string) => {
+      const optimistic: QuestionResolution = {
+        id: crypto.randomUUID(),
+        user_id: "",
+        week_start: weekStart,
+        question_hash: questionHash,
+        question_text: questionText,
+        resolution: resolution ?? null,
+        resolved_at: new Date().toISOString(),
+      };
+
+      setQuestionResolutions((prev) => [...prev, optimistic]);
+
+      const timeout = setTimeout(async () => {
+        const res = await fetch("/api/question-resolutions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "resolve", weekStart, questionText, resolution }),
+        });
+        if (!res.ok) {
+          setQuestionResolutions((prev) => prev.filter((r) => r.question_hash !== questionHash));
+          toast.error("Failed to resolve question");
+        } else {
+          const saved = await res.json();
+          setQuestionResolutions((prev) =>
+            prev.map((r) => (r.question_hash === questionHash ? saved : r))
+          );
+        }
+      }, UNDO_TIMEOUT);
+
+      toast("Question resolved", {
+        action: {
+          label: "Undo",
+          onClick: () => {
+            clearTimeout(timeout);
+            setQuestionResolutions((prev) => prev.filter((r) => r.question_hash !== questionHash));
+          },
+        },
+        duration: UNDO_TIMEOUT,
+      });
+    },
+    []
+  );
+
+  const unresolveQuestion = useCallback(
+    (weekStart: string, questionHash: string) => {
+      const existing = questionResolutions.find((r) => r.question_hash === questionHash);
+
+      setQuestionResolutions((prev) => prev.filter((r) => r.question_hash !== questionHash));
+
+      fetch("/api/question-resolutions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "unresolve", weekStart, questionHash }),
+      }).then((res) => {
+        if (!res.ok && existing) {
+          setQuestionResolutions((prev) => [...prev, existing]);
+          toast.error("Failed to reopen question");
+        }
+      });
+    },
+    [questionResolutions]
+  );
+
+  const updateResolutionText = useCallback(
+    (questionHash: string, resolution: string) => {
+      const existing = questionResolutions.find((r) => r.question_hash === questionHash);
+      if (!existing) return;
+
+      setQuestionResolutions((prev) =>
+        prev.map((r) => (r.question_hash === questionHash ? { ...r, resolution } : r))
+      );
+
+      fetch("/api/question-resolutions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "resolve",
+          weekStart: existing.week_start,
+          questionText: existing.question_text,
+          resolution,
+        }),
+      }).then((res) => {
+        if (!res.ok) {
+          toast.error("Failed to save resolution");
+        }
+      });
+    },
+    [questionResolutions]
+  );
+
   return (
     <WeekContext.Provider
       value={{
@@ -260,6 +362,10 @@ export function WeekProvider({
         upsertNote,
         upsertSummary,
         setWeekData,
+        questionResolutions,
+        resolveQuestion,
+        unresolveQuestion,
+        updateResolutionText,
       }}
     >
       {children}

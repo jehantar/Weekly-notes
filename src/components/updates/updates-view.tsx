@@ -62,7 +62,7 @@ export function UpdatesView({
   weekStart: string;
   monday: Date;
 }) {
-  const { meetings, notes, summary, upsertSummary } = useWeek();
+  const { meetings, notes, summary, upsertSummary, questionResolutions, resolveQuestion, unresolveQuestion, updateResolutionText } = useWeek();
 
   const [editing, setEditing] = useState(false);
   const [editContent, setEditContent] = useState("");
@@ -206,7 +206,14 @@ export function UpdatesView({
               }}
             />
           ) : analysis ? (
-            <ThreadView analysis={analysis} />
+            <ThreadView
+              analysis={analysis}
+              resolutions={questionResolutions}
+              weekStart={weekStart}
+              onResolve={resolveQuestion}
+              onUnresolve={unresolveQuestion}
+              onUpdateResolution={updateResolutionText}
+            />
           ) : summary ? (
             <div
               className="p-4"
