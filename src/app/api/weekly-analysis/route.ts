@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { parseWeekNotes } from "@/lib/utils/parse-notes";
+import { addDays, parseWeekStart } from "@/lib/utils/dates";
 import { DAY_LABELS, THREAD_COLORS } from "@/lib/constants";
 import type { Meeting, Note, Task, Tag } from "@/lib/types/database";
-import type { WeeklyAnalysis } from "@/lib/types/weekly-analysis";
+import { isWeeklyAnalysis, type WeeklyAnalysis } from "@/lib/types/weekly-analysis";
 
 export async function POST(request: Request) {
   const apiKey = process.env.OPENROUTER_API_KEY;
@@ -28,7 +29,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Missing weekStart" }, { status: 400 });
   }
 
-  // Look up the week record
   const { data: week } = await supabase
     .from("weeks")
     .select("id")
@@ -43,37 +43,29 @@ export async function POST(request: Request) {
     );
   }
 
-  // Fetch meetings, notes, completed tasks, tags in parallel
-  const [meetingsRes, notesRes, tasksRes, tagsRes, taskTagsRes] =
-    await Promise.all([
-      supabase
-        .from("meetings")
-        .select("*")
-        .eq("week_id", week.id)
-        .order("day_of_week")
-        .order("sort_order"),
-      supabase.from("notes").select("*").eq("week_id", week.id),
-      supabase
-        .from("tasks")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("status", "done")
-        .gte("completed_at", weekStart)
-        .lt(
-          "completed_at",
-          new Date(
-            new Date(weekStart).getTime() + 7 * 24 * 60 * 60 * 1000
-          ).toISOString()
-        ),
-      supabase.from("tags").select("*").eq("user_id", user.id),
-      supabase.from("task_tags").select("*"),
-    ]);
+  const weekEnd = addDays(parseWeekStart(weekStart), 7).toISOString();
+  const [meetingsRes, notesRes, tasksRes, tagsRes] = await Promise.all([
+    supabase
+      .from("meetings")
+      .select("*")
+      .eq("week_id", week.id)
+      .order("day_of_week")
+      .order("sort_order"),
+    supabase.from("notes").select("*").eq("week_id", week.id),
+    supabase
+      .from("tasks")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("status", "done")
+      .gte("completed_at", weekStart)
+      .lt("completed_at", weekEnd),
+    supabase.from("tags").select("*").eq("user_id", user.id),
+  ]);
 
   const meetings = (meetingsRes.data ?? []) as Meeting[];
   const notes = (notesRes.data ?? []) as Note[];
   const completedTasks = (tasksRes.data ?? []) as Task[];
   const tags = (tagsRes.data ?? []) as Tag[];
-  const taskTags = taskTagsRes.data ?? [];
 
   if (meetings.length === 0 && notes.length === 0) {
     return NextResponse.json(
@@ -85,31 +77,37 @@ export async function POST(request: Request) {
     );
   }
 
-  // Parse notes into per-meeting structured data
   const parsedNotes = parseWeekNotes(notes, meetings);
-
-  // Build tag lookup
   const tagMap = new Map(tags.map((t) => [t.id, t.name]));
 
-  // Build completed tasks with tag names
-  const completedTasksForPrompt = completedTasks.map((task) => {
-    const tagIds = taskTags
-      .filter((tt) => tt.task_id === task.id)
-      .map((tt) => tt.tag_id);
-    const tagNames = tagIds
+  // Fetch task_tags only for the completed tasks this week
+  const completedTaskIds = completedTasks.map((t) => t.id);
+  const taskTagsData =
+    completedTaskIds.length > 0
+      ? ((
+          await supabase
+            .from("task_tags")
+            .select("*")
+            .in("task_id", completedTaskIds)
+        ).data ?? [])
+      : [];
+
+  const taskTagsByTaskId = new Map<string, string[]>();
+  for (const tt of taskTagsData) {
+    const list = taskTagsByTaskId.get(tt.task_id) ?? [];
+    list.push(tt.tag_id);
+    taskTagsByTaskId.set(tt.task_id, list);
+  }
+
+  const completedTasksForPrompt = completedTasks.map((task) => ({
+    title: task.content,
+    completedAt: task.completed_at,
+    tags: (taskTagsByTaskId.get(task.id) ?? [])
       .map((id) => tagMap.get(id))
-      .filter(Boolean) as string[];
-    return {
-      title: task.content,
-      completedAt: task.completed_at,
-      tags: tagNames,
-    };
-  });
+      .filter(Boolean) as string[],
+  }));
 
-  // Build the LLM prompt
   const prompt = buildPrompt(parsedNotes, completedTasksForPrompt, weekStart);
-
-  // Call OpenRouter
   const analysis = await callOpenRouter(apiKey, prompt);
   if (!analysis) {
     return NextResponse.json(
@@ -126,7 +124,6 @@ function buildPrompt(
   completedTasks: { title: string; completedAt: string | null; tags: string[] }[],
   weekStart: string
 ): string {
-  // Group parsed notes by day
   const notesByDay = new Map<number, typeof parsedNotes>();
   for (const note of parsedNotes) {
     const list = notesByDay.get(note.dayOfWeek) ?? [];
@@ -261,23 +258,14 @@ async function callOpenRouter(
     const data = await response.json();
     const content: string = data.choices?.[0]?.message?.content ?? "";
 
-    // Strip markdown fencing if present
+    // Gemini sometimes wraps output in markdown fencing despite instructions
     const jsonStr = content
       .replace(/^```(?:json)?\s*/m, "")
       .replace(/\s*```$/m, "")
       .trim();
 
-    const parsed = JSON.parse(jsonStr) as WeeklyAnalysis;
-
-    // Basic validation
-    if (
-      !Array.isArray(parsed.threads) ||
-      !Array.isArray(parsed.openQuestions) ||
-      !Array.isArray(parsed.keyDecisions) ||
-      typeof parsed.weekOverview !== "string"
-    ) {
-      throw new Error("Invalid analysis structure");
-    }
+    const parsed = isWeeklyAnalysis(jsonStr);
+    if (!parsed) throw new Error("Invalid analysis structure");
 
     return parsed;
   } catch (err) {
