@@ -57,9 +57,13 @@ export function OpenQuestionsSection({
     }
   }
 
-  const prevResolvedCount = useRef(resolvedQuestions.length);
+  const prevResolvedCount = useRef(-1);
 
   useEffect(() => {
+    if (prevResolvedCount.current === -1) {
+      prevResolvedCount.current = resolvedQuestions.length;
+      return;
+    }
     if (resolvedQuestions.length > prevResolvedCount.current) {
       setResolvedExpanded(true);
       const newest = resolvedQuestions[resolvedQuestions.length - 1];
@@ -171,6 +175,10 @@ function ResolvedQuestionRow({
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [inputValue, setInputValue] = useState(resolution.resolution ?? "");
+
+  useEffect(() => {
+    setInputValue(resolution.resolution ?? "");
+  }, [resolution.resolution]);
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
