@@ -60,3 +60,4 @@ export const THREAD_COLORS = [
 
 export const ANALYSIS_COLOR_QUESTION = "#C4A46B";
 export const ANALYSIS_COLOR_DECISION = "#6B9E78";
+export const ANALYSIS_COLOR_RESOLVED = "#7B8FB2";

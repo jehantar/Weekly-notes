@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import type { OpenQuestion, KeyDecision } from "@/lib/types/weekly-analysis";
 import type { QuestionResolution } from "@/lib/types/database";
-import { DAY_LABELS, ANALYSIS_COLOR_QUESTION, ANALYSIS_COLOR_DECISION } from "@/lib/constants";
+import { DAY_LABELS, ANALYSIS_COLOR_QUESTION, ANALYSIS_COLOR_DECISION, ANALYSIS_COLOR_RESOLVED } from "@/lib/constants";
 import { hashQuestion } from "@/lib/utils/strings";
 
 export function OpenQuestionsSection({
@@ -123,11 +123,11 @@ export function OpenQuestionsSection({
           >
             <h3
               className="text-[11px] font-medium uppercase tracking-wider"
-              style={{ color: ANALYSIS_COLOR_DECISION }}
+              style={{ color: ANALYSIS_COLOR_RESOLVED }}
             >
               Resolved ({resolvedQuestions.length})
             </h3>
-            <span className="text-[10px]" style={{ color: ANALYSIS_COLOR_DECISION }}>
+            <span className="text-[10px]" style={{ color: ANALYSIS_COLOR_RESOLVED }}>
               {resolvedExpanded ? "\u25B2" : "\u25BC"}
             </span>
           </button>
@@ -198,7 +198,7 @@ function ResolvedQuestionRow({
   return (
     <div className="group">
       <div className="flex gap-2 text-xs">
-        <span className="shrink-0" style={{ color: ANALYSIS_COLOR_DECISION }}>
+        <span className="shrink-0" style={{ color: ANALYSIS_COLOR_RESOLVED }}>
           ✓
         </span>
         <div className="flex-1">
