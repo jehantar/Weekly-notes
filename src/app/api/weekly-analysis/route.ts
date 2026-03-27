@@ -99,13 +99,24 @@ export async function POST(request: Request) {
     taskTagsByTaskId.set(tt.task_id, list);
   }
 
-  const completedTasksForPrompt = completedTasks.map((task) => ({
-    title: task.content,
-    completedAt: task.completed_at,
-    tags: (taskTagsByTaskId.get(task.id) ?? [])
-      .map((id) => tagMap.get(id))
-      .filter(Boolean) as string[],
-  }));
+  const mondayDate = parseWeekStart(weekStart);
+  const completedTasksForPrompt = completedTasks.map((task) => {
+    let dayCompleted = 1;
+    if (task.completed_at) {
+      const completed = new Date(task.completed_at);
+      const diffDays = Math.floor(
+        (completed.getTime() - mondayDate.getTime()) / (1000 * 60 * 60 * 24)
+      );
+      dayCompleted = Math.max(1, Math.min(5, diffDays + 1));
+    }
+    return {
+      title: task.content,
+      dayCompleted,
+      tags: (taskTagsByTaskId.get(task.id) ?? [])
+        .map((id) => tagMap.get(id))
+        .filter(Boolean) as string[],
+    };
+  });
 
   const prompt = buildPrompt(parsedNotes, completedTasksForPrompt, weekStart);
   const analysis = await callOpenRouter(apiKey, prompt);
@@ -121,7 +132,7 @@ export async function POST(request: Request) {
 
 function buildPrompt(
   parsedNotes: ReturnType<typeof parseWeekNotes>,
-  completedTasks: { title: string; completedAt: string | null; tags: string[] }[],
+  completedTasks: { title: string; dayCompleted: number; tags: string[] }[],
   weekStart: string
 ): string {
   const notesByDay = new Map<number, typeof parsedNotes>();
@@ -152,8 +163,9 @@ function buildPrompt(
   if (completedTasks.length > 0) {
     tasksSection = "\n## Completed Tasks This Week\n";
     for (const task of completedTasks) {
+      const dayLabel = DAY_LABELS[task.dayCompleted - 1] ?? "";
       const tagSuffix = task.tags.length > 0 ? ` [${task.tags.join(", ")}]` : "";
-      tasksSection += `- ${task.title}${tagSuffix}\n`;
+      tasksSection += `- ${task.title} (completed ${dayLabel})${tagSuffix}\n`;
     }
   }
 

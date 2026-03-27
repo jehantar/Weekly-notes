@@ -31,13 +31,21 @@ function htmlToLines(html: string): string[] {
 
 /**
  * Check if a line is a meeting title header.
- * Uses case-insensitive includes for fuzzy matching — the header
- * in notes may not exactly match the meeting title.
+ * Matches if the line is exactly the title, or starts with the title
+ * (to handle "Backend Sync - notes" style headers).
+ * Avoids substring matching to prevent "Fixed auth bug" matching "Auth".
  */
 function matchesMeetingTitle(line: string, titles: string[]): string | null {
-  const lower = line.toLowerCase();
+  const lower = line.toLowerCase().trim();
   for (const title of titles) {
-    if (lower === title.toLowerCase() || lower.includes(title.toLowerCase())) {
+    const titleLower = title.toLowerCase();
+    if (
+      lower === titleLower ||
+      lower.startsWith(titleLower + " ") ||
+      lower.startsWith(titleLower + ":")  ||
+      lower.startsWith(titleLower + " -") ||
+      lower.startsWith(titleLower + " –")
+    ) {
       return title;
     }
   }
