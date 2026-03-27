@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { parseWeekNotes } from "@/lib/utils/parse-notes";
+import { differenceInCalendarDays } from "date-fns";
 import { addDays, parseWeekStart } from "@/lib/utils/dates";
 import { DAY_LABELS, THREAD_COLORS } from "@/lib/constants";
 import type { Meeting, Note, Task, Tag } from "@/lib/types/database";
-import { isWeeklyAnalysis, type WeeklyAnalysis } from "@/lib/types/weekly-analysis";
+import { parseWeeklyAnalysis, type WeeklyAnalysis } from "@/lib/types/weekly-analysis";
 
 export async function POST(request: Request) {
   const apiKey = process.env.OPENROUTER_API_KEY;
@@ -43,7 +44,8 @@ export async function POST(request: Request) {
     );
   }
 
-  const weekEnd = addDays(parseWeekStart(weekStart), 7).toISOString();
+  const mondayDate = parseWeekStart(weekStart);
+  const weekEnd = addDays(mondayDate, 7).toISOString();
   const [meetingsRes, notesRes, tasksRes, tagsRes] = await Promise.all([
     supabase
       .from("meetings")
@@ -99,14 +101,10 @@ export async function POST(request: Request) {
     taskTagsByTaskId.set(tt.task_id, list);
   }
 
-  const mondayDate = parseWeekStart(weekStart);
   const completedTasksForPrompt = completedTasks.map((task) => {
     let dayCompleted = 1;
     if (task.completed_at) {
-      const completed = new Date(task.completed_at);
-      const diffDays = Math.floor(
-        (completed.getTime() - mondayDate.getTime()) / (1000 * 60 * 60 * 24)
-      );
+      const diffDays = differenceInCalendarDays(new Date(task.completed_at), mondayDate);
       dayCompleted = Math.max(1, Math.min(5, diffDays + 1));
     }
     return {
@@ -276,7 +274,7 @@ async function callOpenRouter(
       .replace(/\s*```$/m, "")
       .trim();
 
-    const parsed = isWeeklyAnalysis(jsonStr);
+    const parsed = parseWeeklyAnalysis(jsonStr);
     if (!parsed) throw new Error("Invalid analysis structure");
 
     return parsed;

@@ -38,8 +38,8 @@ export type WeeklyAnalysis = {
   weekOverview: string;
 };
 
-/** Type guard: returns true if the string is valid WeeklyAnalysis JSON */
-export function isWeeklyAnalysis(content: string): WeeklyAnalysis | null {
+/** Parse a string as WeeklyAnalysis JSON. Returns the parsed object or null. */
+export function parseWeeklyAnalysis(content: string): WeeklyAnalysis | null {
   try {
     const parsed = JSON.parse(content);
     if (

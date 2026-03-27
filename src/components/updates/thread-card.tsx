@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Thread } from "@/lib/types/weekly-analysis";
-import { DAY_LABELS } from "@/lib/constants";
+import { DAY_LABELS, ANALYSIS_COLOR_QUESTION, ANALYSIS_COLOR_DECISION } from "@/lib/constants";
 
 export function ThreadCard({ thread }: { thread: Thread }) {
   const [expanded, setExpanded] = useState(true);
@@ -83,7 +83,7 @@ export function ThreadCard({ thread }: { thread: Thread }) {
                     <div
                       key={`q-${j}`}
                       className="text-xs flex gap-1.5"
-                      style={{ color: "#C4A46B" }}
+                      style={{ color: ANALYSIS_COLOR_QUESTION }}
                     >
                       <span>?</span>
                       <span>{question}</span>
@@ -105,7 +105,7 @@ export function ThreadCard({ thread }: { thread: Thread }) {
                     className="text-xs flex gap-1.5 py-0.5"
                     style={{ color: "var(--text-secondary)" }}
                   >
-                    <span style={{ color: "#6B9E78" }}>&#10003;</span>
+                    <span style={{ color: ANALYSIS_COLOR_DECISION }}>&#10003;</span>
                     <span>
                       {task.title}
                       <span

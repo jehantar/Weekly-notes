@@ -6,7 +6,7 @@ import type { WeekSummary } from "@/lib/types/database";
 import { parseWeekStart, formatWeekRange } from "@/lib/utils/dates";
 import { SummaryMarkdown } from "./summary-markdown";
 import { ThreadView } from "./thread-view";
-import { isWeeklyAnalysis } from "@/lib/types/weekly-analysis";
+import { parseWeeklyAnalysis } from "@/lib/types/weekly-analysis";
 
 export function SummaryList({ currentWeekStart }: { currentWeekStart: string }) {
   const supabase = useSupabase();
@@ -37,6 +37,14 @@ export function SummaryList({ currentWeekStart }: { currentWeekStart: string }) 
     () =>
       Object.fromEntries(
         summaries.map((s) => [s.id, formatWeekRange(parseWeekStart(s.week_start))])
+      ),
+    [summaries]
+  );
+
+  const parsedAnalyses = useMemo(
+    () =>
+      Object.fromEntries(
+        summaries.map((s) => [s.id, parseWeeklyAnalysis(s.content)])
       ),
     [summaries]
   );
@@ -86,14 +94,11 @@ export function SummaryList({ currentWeekStart }: { currentWeekStart: string }) 
                     backgroundColor: "var(--bg-column)",
                   }}
                 >
-                  {(() => {
-                    const analysis = isWeeklyAnalysis(s.content);
-                    return analysis ? (
-                      <ThreadView analysis={analysis} />
-                    ) : (
-                      <SummaryMarkdown content={s.content} compact />
-                    );
-                  })()}
+                  {parsedAnalyses[s.id] ? (
+                    <ThreadView analysis={parsedAnalyses[s.id]!} />
+                  ) : (
+                    <SummaryMarkdown content={s.content} compact />
+                  )}
                 </div>
               )}
             </div>

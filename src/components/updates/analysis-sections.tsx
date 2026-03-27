@@ -1,7 +1,7 @@
 "use client";
 
 import type { OpenQuestion, KeyDecision } from "@/lib/types/weekly-analysis";
-import { DAY_LABELS } from "@/lib/constants";
+import { DAY_LABELS, ANALYSIS_COLOR_QUESTION, ANALYSIS_COLOR_DECISION } from "@/lib/constants";
 
 export function OpenQuestionsSection({
   questions,
@@ -14,7 +14,7 @@ export function OpenQuestionsSection({
     <div>
       <h3
         className="text-[11px] font-medium uppercase tracking-wider mb-3"
-        style={{ color: "#C4A46B" }}
+        style={{ color: ANALYSIS_COLOR_QUESTION }}
       >
         Open Questions
       </h3>
@@ -23,7 +23,7 @@ export function OpenQuestionsSection({
           const dayLabel = DAY_LABELS[q.dayOfWeek - 1] ?? "";
           return (
             <div key={i} className="flex gap-2 text-xs">
-              <span className="shrink-0" style={{ color: "#C4A46B" }}>
+              <span className="shrink-0" style={{ color: ANALYSIS_COLOR_QUESTION }}>
                 ?
               </span>
               <div>
@@ -56,7 +56,7 @@ export function KeyDecisionsSection({
     <div>
       <h3
         className="text-[11px] font-medium uppercase tracking-wider mb-3"
-        style={{ color: "#6B9E78" }}
+        style={{ color: ANALYSIS_COLOR_DECISION }}
       >
         Key Decisions
       </h3>
@@ -65,7 +65,7 @@ export function KeyDecisionsSection({
           const dayLabel = DAY_LABELS[d.dayOfWeek - 1] ?? "";
           return (
             <div key={i} className="flex gap-2 text-xs">
-              <span className="shrink-0" style={{ color: "#6B9E78" }}>
+              <span className="shrink-0" style={{ color: ANALYSIS_COLOR_DECISION }}>
                 &rarr;
               </span>
               <div>

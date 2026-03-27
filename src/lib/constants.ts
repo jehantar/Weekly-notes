@@ -57,3 +57,6 @@ export const THREAD_COLORS = [
   "#6BA5C4", // blue
   "#B07CC4", // violet
 ] as const;
+
+export const ANALYSIS_COLOR_QUESTION = "#C4A46B";
+export const ANALYSIS_COLOR_DECISION = "#6B9E78";

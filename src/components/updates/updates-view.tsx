@@ -7,7 +7,7 @@ import { SummaryMarkdown } from "./summary-markdown";
 import { ThreadView } from "./thread-view";
 import { AUTOSAVE_DELAY, DAY_LABELS } from "@/lib/constants";
 import { formatWeekRange } from "@/lib/utils/dates";
-import { isWeeklyAnalysis, type WeeklyAnalysis } from "@/lib/types/weekly-analysis";
+import { parseWeeklyAnalysis, type WeeklyAnalysis } from "@/lib/types/weekly-analysis";
 import { toast } from "sonner";
 
 /** Convert a WeeklyAnalysis to readable markdown for editing. One-way conversion. */
@@ -71,7 +71,7 @@ export function UpdatesView({
 
   const weekLabel = useMemo(() => formatWeekRange(monday), [monday]);
   const analysis = useMemo(
-    () => (summary?.content ? isWeeklyAnalysis(summary.content) : null),
+    () => (summary?.content ? parseWeeklyAnalysis(summary.content) : null),
     [summary?.content]
   );
 
