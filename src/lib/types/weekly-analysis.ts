@@ -1,6 +1,7 @@
 export type ThreadAppearance = {
   meetingTitle: string;
   dayOfWeek: number;
+  summary: string;
   points: string[];
   questions: string[];
 };
