@@ -57,6 +57,19 @@ export function OpenQuestionsSection({
     }
   }
 
+  const prevResolvedCount = useRef(resolvedQuestions.length);
+
+  useEffect(() => {
+    if (resolvedQuestions.length > prevResolvedCount.current) {
+      setResolvedExpanded(true);
+      const newest = resolvedQuestions[resolvedQuestions.length - 1];
+      if (newest && !newest.resolution.resolution) {
+        setEditingHash(newest.hash);
+      }
+    }
+    prevResolvedCount.current = resolvedQuestions.length;
+  }, [resolvedQuestions]);
+
   if (questions.length === 0 || hashes.size === 0) return null;
 
   return (
