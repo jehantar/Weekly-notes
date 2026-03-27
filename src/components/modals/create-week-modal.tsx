@@ -136,6 +136,7 @@ export function CreateWeekModal({
       meetings: insertedMeetings,
       notes: [],
       summary: null,
+      questionResolutions: [],
     });
 
     setCreating(false);
