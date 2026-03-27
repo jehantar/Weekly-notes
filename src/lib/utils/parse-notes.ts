@@ -139,11 +139,7 @@ export function parseWeekNotes(
     }
   }
 
-  // Sort by day, then by meeting sort_order within day
-  result.sort((a, b) => {
-    if (a.dayOfWeek !== b.dayOfWeek) return a.dayOfWeek - b.dayOfWeek;
-    return 0;
-  });
+  result.sort((a, b) => a.dayOfWeek - b.dayOfWeek);
 
   return result;
 }

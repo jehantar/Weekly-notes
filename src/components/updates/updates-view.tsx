@@ -5,11 +5,9 @@ import { useWeek } from "@/components/providers/week-provider";
 import { SummaryList } from "./summary-list";
 import { SummaryMarkdown } from "./summary-markdown";
 import { ThreadView } from "./thread-view";
-import { AUTOSAVE_DELAY } from "@/lib/constants";
+import { AUTOSAVE_DELAY, DAY_LABELS } from "@/lib/constants";
 import { formatWeekRange } from "@/lib/utils/dates";
-import { isWeeklyAnalysis } from "@/lib/types/weekly-analysis";
-import type { WeeklyAnalysis } from "@/lib/types/weekly-analysis";
-import { DAY_LABELS } from "@/lib/constants";
+import { isWeeklyAnalysis, type WeeklyAnalysis } from "@/lib/types/weekly-analysis";
 import { toast } from "sonner";
 
 /** Convert a WeeklyAnalysis to readable markdown for editing. One-way conversion. */
@@ -129,10 +127,8 @@ export function UpdatesView({
   );
 
   const handleDoneEditing = useCallback(() => {
-    if (autosaveRef.current) {
-      clearTimeout(autosaveRef.current);
-      upsertSummary(editContent);
-    }
+    if (autosaveRef.current) clearTimeout(autosaveRef.current);
+    upsertSummary(editContent);
     setEditing(false);
   }, [editContent, upsertSummary]);
 
