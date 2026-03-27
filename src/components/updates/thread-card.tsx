@@ -5,7 +5,7 @@ import type { Thread } from "@/lib/types/weekly-analysis";
 import { DAY_LABELS, ANALYSIS_COLOR_QUESTION, ANALYSIS_COLOR_DECISION } from "@/lib/constants";
 
 export function ThreadCard({ thread }: { thread: Thread }) {
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(false);
 
   const meetingCount = thread.appearances.length;
 
@@ -68,6 +68,14 @@ export function ThreadCard({ thread }: { thread: Thread }) {
                     {appearance.meetingTitle}
                   </span>
                 </div>
+                {appearance.summary && (
+                  <p
+                    className="text-xs mb-1.5 ml-0.5"
+                    style={{ color: "var(--text-primary)" }}
+                  >
+                    {appearance.summary}
+                  </p>
+                )}
                 <div className="space-y-1 ml-0.5">
                   {appearance.points.map((point, j) => (
                     <div
