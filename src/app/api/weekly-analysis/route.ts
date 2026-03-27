@@ -192,8 +192,7 @@ Analyze the above meeting notes and tasks. Return a JSON object with this exact 
           "meetingTitle": "<meeting where this theme appeared>",
           "dayOfWeek": <1-5>,
           "summary": "<1-2 sentence synthesis of what was discussed and why it matters — DO NOT copy bullet points, distill the key message>",
-          "points": ["<2-4 concise takeaways or action items, rewritten for clarity — not raw notes>"],
-          "questions": ["<questions related to this thread>"]
+          "points": ["<2-4 concise takeaways or action items, rewritten for clarity — not raw notes>"]
         }
       ],
       "completedTasks": [
@@ -226,7 +225,7 @@ Analyze the above meeting notes and tasks. Return a JSON object with this exact 
 
 1. **Threads**: Group related discussion points across different meetings into named threads. A thread represents a topic/theme that appeared in multiple meetings or was significant in one. Each thread should have a concise, descriptive name. For each appearance, write a **summary** that synthesizes the discussion into 1-2 articulate sentences capturing the key message — do NOT just restate the bullet points. The **points** should be concise, rewritten takeaways or action items (2-4 max), not verbatim copies of the raw notes.
 
-2. **Open Questions**: Do NOT simply list every [QUESTION] tag from the notes. Instead, analyze the full context of the week's discussions and identify questions that remain **genuinely unanswered**. A question is answered if a later note, decision, or discussion point addresses it — exclude those. Also surface implicit open questions: gaps, ambiguities, or unresolved concerns you infer from the notes even if not explicitly tagged as [QUESTION]. The goal is a curated list of things the user still needs to follow up on. Still include tagged [QUESTION] items in the relevant thread's appearances.
+2. **Open Questions**: Do NOT simply list every [QUESTION] tag from the notes. Instead, analyze the full context of the week's discussions and identify questions that remain **genuinely unanswered**. A question is answered if a later note, decision, or discussion point addresses it — exclude those. Also surface implicit open questions: gaps, ambiguities, or unresolved concerns you infer from the notes even if not explicitly tagged as [QUESTION]. The goal is a curated list of things the user still needs to follow up on.
 
 3. **Key Decisions**: Look for declarative statements like "decided to", "going with", "agreed on", "will do" — these indicate decisions made during meetings.
 

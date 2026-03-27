@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Thread } from "@/lib/types/weekly-analysis";
-import { DAY_LABELS, ANALYSIS_COLOR_QUESTION, ANALYSIS_COLOR_DECISION } from "@/lib/constants";
+import { DAY_LABELS, ANALYSIS_COLOR_DECISION } from "@/lib/constants";
 
 export function ThreadCard({ thread }: { thread: Thread }) {
   const [expanded, setExpanded] = useState(false);
@@ -85,16 +85,6 @@ export function ThreadCard({ thread }: { thread: Thread }) {
                     >
                       <span style={{ color: "var(--text-placeholder)" }}>-</span>
                       <span>{point}</span>
-                    </div>
-                  ))}
-                  {appearance.questions.map((question, j) => (
-                    <div
-                      key={`q-${j}`}
-                      className="text-xs flex gap-1.5"
-                      style={{ color: ANALYSIS_COLOR_QUESTION }}
-                    >
-                      <span>?</span>
-                      <span>{question}</span>
                     </div>
                   ))}
                 </div>
