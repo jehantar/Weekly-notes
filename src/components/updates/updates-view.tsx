@@ -2,12 +2,11 @@
 
 import { useState, useCallback, useRef, useMemo } from "react";
 import { useWeek } from "@/components/providers/week-provider";
-import { useTasks } from "@/components/providers/tasks-provider";
 import { SummaryList } from "./summary-list";
 import { SummaryMarkdown } from "./summary-markdown";
 import { ThreadView } from "./thread-view";
 import { AUTOSAVE_DELAY } from "@/lib/constants";
-import { addDays, formatWeekRange } from "@/lib/utils/dates";
+import { formatWeekRange } from "@/lib/utils/dates";
 import { isWeeklyAnalysis } from "@/lib/types/weekly-analysis";
 import type { WeeklyAnalysis } from "@/lib/types/weekly-analysis";
 import { DAY_LABELS } from "@/lib/constants";
@@ -66,7 +65,6 @@ export function UpdatesView({
   monday: Date;
 }) {
   const { meetings, notes, summary, upsertSummary } = useWeek();
-  const { tasks } = useTasks();
 
   const [editing, setEditing] = useState(false);
   const [editContent, setEditContent] = useState("");
@@ -74,19 +72,6 @@ export function UpdatesView({
   const autosaveRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const weekLabel = useMemo(() => formatWeekRange(monday), [monday]);
-
-  const weekEnd = useMemo(() => addDays(monday, 7), [monday]);
-  const completedTasks = useMemo(
-    () =>
-      tasks.filter((t) => {
-        if (!t.completed_at) return false;
-        const d = new Date(t.completed_at);
-        return d >= monday && d < weekEnd;
-      }),
-    [tasks, monday, weekEnd]
-  );
-
-  // Parse current summary content
   const analysis = useMemo(
     () => (summary?.content ? isWeeklyAnalysis(summary.content) : null),
     [summary?.content]
