@@ -202,10 +202,10 @@ function ResolvedQuestionRow({
           ✓
         </span>
         <div className="flex-1">
-          <span style={{ color: "var(--text-placeholder)", textDecoration: "line-through" }}>
+          <span style={{ color: "var(--text-secondary)", opacity: 0.7 }}>
             {question.question}
           </span>
-          <span className="ml-2" style={{ color: "var(--text-placeholder)", opacity: 0.6 }}>
+          <span className="ml-2" style={{ color: "var(--text-placeholder)", opacity: 0.5 }}>
             {question.source} · {dayLabel}
           </span>
           {resolution.resolution && !isEditing && (
