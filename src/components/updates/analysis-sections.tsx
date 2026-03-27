@@ -123,11 +123,11 @@ export function OpenQuestionsSection({
           >
             <h3
               className="text-[11px] font-medium uppercase tracking-wider"
-              style={{ color: "var(--text-placeholder)" }}
+              style={{ color: ANALYSIS_COLOR_DECISION }}
             >
               Resolved ({resolvedQuestions.length})
             </h3>
-            <span className="text-[10px]" style={{ color: "var(--text-placeholder)" }}>
+            <span className="text-[10px]" style={{ color: ANALYSIS_COLOR_DECISION }}>
               {resolvedExpanded ? "\u25B2" : "\u25BC"}
             </span>
           </button>
@@ -198,14 +198,14 @@ function ResolvedQuestionRow({
   return (
     <div className="group">
       <div className="flex gap-2 text-xs">
-        <span className="shrink-0" style={{ color: "var(--text-placeholder)" }}>
+        <span className="shrink-0" style={{ color: ANALYSIS_COLOR_DECISION }}>
           ✓
         </span>
         <div className="flex-1">
-          <span style={{ color: "var(--text-secondary)", opacity: 0.7 }}>
+          <span style={{ color: "var(--text-primary)" }}>
             {question.question}
           </span>
-          <span className="ml-2" style={{ color: "var(--text-placeholder)", opacity: 0.5 }}>
+          <span className="ml-2" style={{ color: "var(--text-placeholder)" }}>
             {question.source} · {dayLabel}
           </span>
           {resolution.resolution && !isEditing && (
