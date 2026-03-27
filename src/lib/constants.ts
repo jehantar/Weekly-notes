@@ -48,3 +48,12 @@ export const UPLOAD_MAX_SIZE = 5 * 1024 * 1024; // 5MB
 export const AUTOSAVE_DELAY = 1000;
 export const SEARCH_DEBOUNCE = 300;
 export const UNDO_TIMEOUT = 5000;
+
+export const THREAD_COLORS = [
+  "#848CD0", // purple
+  "#6B9E78", // green
+  "#C4A46B", // gold
+  "#C47070", // red
+  "#6BA5C4", // blue
+  "#B07CC4", // violet
+] as const;
