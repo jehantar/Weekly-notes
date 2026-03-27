@@ -95,7 +95,14 @@ export function SummaryList({ currentWeekStart }: { currentWeekStart: string }) 
                   }}
                 >
                   {parsedAnalyses[s.id] ? (
-                    <ThreadView analysis={parsedAnalyses[s.id]!} />
+                    <ThreadView
+                      analysis={parsedAnalyses[s.id]!}
+                      resolutions={[]}
+                      weekStart={s.week_start}
+                      onResolve={() => {}}
+                      onUnresolve={() => {}}
+                      onUpdateResolution={() => {}}
+                    />
                   ) : (
                     <SummaryMarkdown content={s.content} compact />
                   )}
