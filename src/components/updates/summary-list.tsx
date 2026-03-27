@@ -5,6 +5,8 @@ import { useSupabase } from "@/components/providers/supabase-provider";
 import type { WeekSummary } from "@/lib/types/database";
 import { parseWeekStart, formatWeekRange } from "@/lib/utils/dates";
 import { SummaryMarkdown } from "./summary-markdown";
+import { ThreadView } from "./thread-view";
+import { isWeeklyAnalysis } from "@/lib/types/weekly-analysis";
 
 export function SummaryList({ currentWeekStart }: { currentWeekStart: string }) {
   const supabase = useSupabase();
@@ -57,7 +59,7 @@ export function SummaryList({ currentWeekStart }: { currentWeekStart: string }) 
         className="text-[11px] font-medium uppercase tracking-wider mb-3"
         style={{ color: "var(--text-placeholder)" }}
       >
-        Past Summaries
+        Past Analyses
       </h3>
       <div className="space-y-1">
         {summaries.map((s) => {
@@ -84,7 +86,14 @@ export function SummaryList({ currentWeekStart }: { currentWeekStart: string }) 
                     backgroundColor: "var(--bg-column)",
                   }}
                 >
-                  <SummaryMarkdown content={s.content} compact />
+                  {(() => {
+                    const analysis = isWeeklyAnalysis(s.content);
+                    return analysis ? (
+                      <ThreadView analysis={analysis} />
+                    ) : (
+                      <SummaryMarkdown content={s.content} compact />
+                    );
+                  })()}
                 </div>
               )}
             </div>
