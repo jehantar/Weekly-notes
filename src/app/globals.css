@@ -9,6 +9,7 @@
   --bg-hover: #232428;
   --border-card: #2A2B2E;
   --accent-purple: #848CD0;
+  --accent-link: #60A5FA;
   --text-primary: #ECECED;
   --text-secondary: #8B8C90;
   --text-placeholder: #4E4F54;
@@ -23,6 +24,7 @@
   --bg-hover: #E8E8EC;
   --border-card: #E0E0E4;
   --accent-purple: #6366B0;
+  --accent-link: #2563EB;
   --text-primary: #1A1A1E;
   --text-secondary: #6B6C70;
   --text-placeholder: #A0A1A6;
@@ -69,6 +71,16 @@
 
 .tiptap-notes li p {
   margin: 0;
+}
+
+.tiptap-notes a {
+  color: var(--accent-link);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--accent-link) 40%, transparent);
+}
+
+.tiptap-notes a:hover {
+  text-decoration-color: var(--accent-link);
 }
 
 /* Placeholder styling */

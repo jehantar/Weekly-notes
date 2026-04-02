@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { useEditor, EditorContent } from "@tiptap/react";
+import { useEditor, EditorContent, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -71,7 +71,7 @@ export function NotesCell({
     [weekId, dayOfWeek]
   );
 
-  const editor = useEditor({
+  const editor: Editor | null = useEditor({
     extensions: [
       StarterKit.configure({
         heading: false,
@@ -99,6 +99,31 @@ export function NotesCell({
           editor?.commands.setContent(savedContentRef.current);
           (document.activeElement as HTMLElement)?.blur();
           return true;
+        }
+        // Dedent empty list items on Enter (instead of creating another sub-bullet)
+        if (event.key === "Enter" && !event.shiftKey && editor) {
+          const { $from } = editor.state.selection;
+          for (let depth = $from.depth; depth > 0; depth--) {
+            const node = $from.node(depth);
+            if (node.type.name === "listItem") {
+              if (node.textContent === "" && node.content.size <= 2) {
+                return editor.chain().focus().liftListItem("listItem").run();
+              }
+              break;
+            }
+          }
+        }
+        // Tab to indent, Shift+Tab to dedent list items
+        if (event.key === "Tab" && editor) {
+          const isInList = editor.isActive("listItem");
+          if (isInList) {
+            event.preventDefault();
+            if (event.shiftKey) {
+              return editor.chain().focus().liftListItem("listItem").run();
+            } else {
+              return editor.chain().focus().sinkListItem("listItem").run();
+            }
+          }
         }
         return false;
       },
