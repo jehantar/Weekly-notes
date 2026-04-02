@@ -106,7 +106,7 @@ export function NotesCell({
           for (let depth = $from.depth; depth > 0; depth--) {
             const node = $from.node(depth);
             if (node.type.name === "listItem") {
-              if (node.textContent === "") {
+              if (node.textContent === "" && node.content.size <= 2) {
                 return editor.chain().focus().liftListItem("listItem").run();
               }
               break;
