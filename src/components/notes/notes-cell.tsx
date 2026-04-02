@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { useEditor, EditorContent } from "@tiptap/react";
+import { useEditor, EditorContent, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -71,7 +71,7 @@ export function NotesCell({
     [weekId, dayOfWeek]
   );
 
-  const editor = useEditor({
+  const editor: Editor | null = useEditor({
     extensions: [
       StarterKit.configure({
         heading: false,
