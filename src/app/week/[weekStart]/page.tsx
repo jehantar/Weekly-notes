@@ -6,7 +6,7 @@ import { SupabaseProvider } from "@/components/providers/supabase-provider";
 import { WeekProvider, type WeekData } from "@/components/providers/week-provider";
 import { TasksProvider } from "@/components/providers/tasks-provider";
 import { WeekClient } from "./week-client";
-import type { Week, Meeting, Note, Task, Tag, WeekSummary, QuestionResolution } from "@/lib/types/database";
+import type { Week, Meeting, Note, Task, Tag, WeekSummary, QuestionResolution, Screenshot } from "@/lib/types/database";
 
 export default async function WeekPage({
   params,
@@ -90,7 +90,7 @@ export default async function WeekPage({
   let initialData: WeekData;
 
   if (week) {
-    const [meetingsRes, notesRes] = await Promise.all([
+    const [meetingsRes, notesRes, screenshotsRes] = await Promise.all([
       supabase
         .from("meetings")
         .select("*")
@@ -102,6 +102,11 @@ export default async function WeekPage({
         .select("*")
         .eq("week_id", week.id)
         .order("day_of_week"),
+      supabase
+        .from("screenshots")
+        .select("*")
+        .eq("week_id", week.id)
+        .order("created_at", { ascending: false }),
     ]);
 
     initialData = {
@@ -110,6 +115,7 @@ export default async function WeekPage({
       notes: (notesRes.data ?? []) as Note[],
       summary: (summaryData as WeekSummary) ?? null,
       questionResolutions: initialResolutions,
+      screenshots: (screenshotsRes.data ?? []) as Screenshot[],
     };
   } else {
     initialData = {
@@ -118,6 +124,7 @@ export default async function WeekPage({
       notes: [],
       summary: (summaryData as WeekSummary) ?? null,
       questionResolutions: initialResolutions,
+      screenshots: [],
     };
   }
 

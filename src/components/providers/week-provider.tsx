@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { useSupabase } from "./supabase-provider";
-import type { Week, Meeting, Note, WeekSummary, QuestionResolution } from "@/lib/types/database";
+import type { Week, Meeting, Note, WeekSummary, QuestionResolution, Screenshot } from "@/lib/types/database";
 import { UNDO_TIMEOUT } from "@/lib/constants";
 import { toast } from "sonner";
 
@@ -18,6 +18,7 @@ export type WeekData = {
   notes: Note[];
   summary: WeekSummary | null;
   questionResolutions: QuestionResolution[];
+  screenshots: Screenshot[];
 };
 
 type WeekContextType = WeekData & {
@@ -38,6 +39,11 @@ type WeekContextType = WeekData & {
   resolveQuestion: (weekStart: string, questionText: string, questionHash: string, resolution?: string) => void;
   unresolveQuestion: (weekStart: string, questionHash: string) => void;
   updateResolutionText: (questionHash: string, resolution: string) => void;
+  // Screenshots
+  screenshots: Screenshot[];
+  addScreenshot: (screenshot: Screenshot) => void;
+  removeScreenshot: (id: string) => void;
+  updateScreenshotCaption: (id: string, caption: string) => void;
 };
 
 const WeekContext = createContext<WeekContextType | undefined>(undefined);
@@ -55,6 +61,7 @@ export function WeekProvider({
   const [notes, setNotes] = useState(initialData.notes);
   const [summary, setSummary] = useState(initialData.summary);
   const [questionResolutions, setQuestionResolutions] = useState(initialData.questionResolutions);
+  const [screenshots, setScreenshots] = useState(initialData.screenshots);
 
   const weekId = week?.id ?? null;
 
@@ -64,6 +71,7 @@ export function WeekProvider({
     setNotes(data.notes);
     setSummary(data.summary);
     setQuestionResolutions(data.questionResolutions);
+    setScreenshots(data.screenshots);
   }, []);
 
   const refreshMeetings = useCallback(async () => {
@@ -347,6 +355,67 @@ export function WeekProvider({
     [questionResolutions]
   );
 
+  // --- Screenshots ---
+
+  const addScreenshot = useCallback(
+    (screenshot: Screenshot) => {
+      setScreenshots((prev) => [screenshot, ...prev]);
+    },
+    []
+  );
+
+  const removeScreenshot = useCallback(
+    (id: string) => {
+      const screenshot = screenshots.find((s) => s.id === id);
+      if (!screenshot) return;
+
+      setScreenshots((prev) => prev.filter((s) => s.id !== id));
+
+      const timeout = setTimeout(async () => {
+        const res = await fetch("/api/screenshots", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id }),
+        });
+        if (!res.ok) {
+          setScreenshots((prev) => [...prev, screenshot]);
+          toast.error("Failed to delete screenshot");
+        }
+      }, UNDO_TIMEOUT);
+
+      toast("Screenshot deleted", {
+        action: {
+          label: "Undo",
+          onClick: () => {
+            clearTimeout(timeout);
+            setScreenshots((prev) => [...prev, screenshot]);
+          },
+        },
+        duration: UNDO_TIMEOUT,
+      });
+    },
+    [screenshots]
+  );
+
+  const updateScreenshotCaption = useCallback(
+    (id: string, caption: string) => {
+      setScreenshots((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, caption } : s))
+      );
+
+      fetch("/api/screenshots", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, caption }),
+      }).then((res) => {
+        if (!res.ok) {
+          toast.error("Failed to save caption");
+        }
+      });
+    },
+    []
+  );
+
   return (
     <WeekContext.Provider
       value={{
@@ -366,6 +435,10 @@ export function WeekProvider({
         resolveQuestion,
         unresolveQuestion,
         updateResolutionText,
+        screenshots,
+        addScreenshot,
+        removeScreenshot,
+        updateScreenshotCaption,
       }}
     >
       {children}

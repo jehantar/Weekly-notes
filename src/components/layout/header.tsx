@@ -5,7 +5,7 @@ import { CalendarPicker } from "./calendar-picker";
 import { useTasks } from "@/components/providers/tasks-provider";
 import { useTheme } from "@/components/providers/theme-provider";
 
-export type ViewTab = "notes" | "tasks" | "updates";
+export type ViewTab = "notes" | "tasks" | "updates" | "screenshots";
 
 export function Header({
   weekStart,
@@ -46,7 +46,7 @@ export function Header({
       </div>
       {/* Tab bar */}
       <div className="px-4 flex gap-0 items-center">
-        {(["notes", "tasks", "updates"] as const).map((tab) => (
+        {(["notes", "tasks", "updates", "screenshots"] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => onTabChange(tab)}

@@ -263,6 +263,42 @@ export interface Database {
         };
         Relationships: [];
       };
+      screenshots: {
+        Row: {
+          id: string;
+          week_id: string;
+          user_id: string;
+          storage_path: string;
+          public_url: string;
+          caption: string | null;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          week_id: string;
+          user_id: string;
+          storage_path: string;
+          public_url: string;
+          caption?: string | null;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          week_id?: string;
+          user_id?: string;
+          storage_path?: string;
+          public_url?: string;
+          caption?: string | null;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -296,3 +332,4 @@ export type Tag = Database["public"]["Tables"]["tags"]["Row"];
 export type TaskTag = Database["public"]["Tables"]["task_tags"]["Row"];
 export type WeekSummary = Database["public"]["Tables"]["week_summaries"]["Row"];
 export type QuestionResolution = Database["public"]["Tables"]["question_resolutions"]["Row"];
+export type Screenshot = Database["public"]["Tables"]["screenshots"]["Row"];
