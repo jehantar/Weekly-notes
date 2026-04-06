@@ -6,6 +6,7 @@ import { Header, type ViewTab } from "@/components/layout/header";
 import { DayCards } from "@/components/layout/day-cards";
 import { KanbanBoard } from "@/components/kanban/kanban-board";
 import { UpdatesView } from "@/components/updates/updates-view";
+import { ScreenshotsView } from "@/components/screenshots/screenshots-view";
 import { CreateWeekModal } from "@/components/modals/create-week-modal";
 import { SearchCommand } from "@/components/layout/search-command";
 import { parseWeekStart, addWeeks as addWeeksUtil, formatWeekStart } from "@/lib/utils/dates";
@@ -28,7 +29,7 @@ export function WeekClient({
   // Tab state from query param
   const viewParam = searchParams.get("view") as ViewTab | null;
   const [activeTab, setActiveTab] = useState<ViewTab>(
-    viewParam === "tasks" ? "tasks" : viewParam === "updates" ? "updates" : "notes"
+    viewParam === "tasks" ? "tasks" : viewParam === "updates" ? "updates" : viewParam === "screenshots" ? "screenshots" : "notes"
   );
 
   const handleTabChange = useCallback((tab: ViewTab) => {
@@ -104,8 +105,10 @@ export function WeekClient({
           <DayCards monday={monday} />
         ) : activeTab === "tasks" ? (
           <KanbanBoard />
-        ) : (
+        ) : activeTab === "updates" ? (
           <UpdatesView weekStart={weekStart} monday={monday} />
+        ) : (
+          <ScreenshotsView weekStart={weekStart} monday={monday} />
         )}
       </main>
       {showCreateModal && (

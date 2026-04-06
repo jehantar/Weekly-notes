@@ -44,6 +44,7 @@ export const TAG_COLOR_KEYS = Object.keys(TAG_COLORS);
 
 export const UPLOAD_ALLOWED_TYPES = ["image/png", "image/jpeg", "image/gif", "image/webp"];
 export const UPLOAD_MAX_SIZE = 5 * 1024 * 1024; // 5MB
+export const SCREENSHOT_UPLOAD_MAX_SIZE = 10 * 1024 * 1024; // 10MB (slides are higher res)
 
 export const AUTOSAVE_DELAY = 1000;
 export const SEARCH_DEBOUNCE = 300;
