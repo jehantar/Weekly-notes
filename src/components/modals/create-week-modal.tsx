@@ -137,6 +137,7 @@ export function CreateWeekModal({
       notes: [],
       summary: null,
       questionResolutions: [],
+      screenshots: [],
     });
 
     setCreating(false);
