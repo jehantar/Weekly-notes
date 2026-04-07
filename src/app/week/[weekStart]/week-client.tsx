@@ -9,6 +9,7 @@ import { UpdatesView } from "@/components/updates/updates-view";
 import { ScreenshotsView } from "@/components/screenshots/screenshots-view";
 import { CreateWeekModal } from "@/components/modals/create-week-modal";
 import { SearchCommand } from "@/components/layout/search-command";
+import { AcronymsPanel } from "@/components/layout/acronyms-panel";
 import { parseWeekStart, addWeeks as addWeeksUtil, formatWeekStart } from "@/lib/utils/dates";
 
 
@@ -111,6 +112,7 @@ export function WeekClient({
           <ScreenshotsView weekStart={weekStart} monday={monday} />
         )}
       </main>
+      <AcronymsPanel />
       {showCreateModal && (
         <CreateWeekModal
           weekStart={weekStart}

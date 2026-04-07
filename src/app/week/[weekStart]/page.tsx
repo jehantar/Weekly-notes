@@ -5,8 +5,9 @@ import { parseWeekStart, formatWeekStart, getMonday } from "@/lib/utils/dates";
 import { SupabaseProvider } from "@/components/providers/supabase-provider";
 import { WeekProvider, type WeekData } from "@/components/providers/week-provider";
 import { TasksProvider } from "@/components/providers/tasks-provider";
+import { AcronymsProvider } from "@/components/providers/acronyms-provider";
 import { WeekClient } from "./week-client";
-import type { Week, Meeting, Note, Task, Tag, WeekSummary, QuestionResolution, Screenshot } from "@/lib/types/database";
+import type { Week, Meeting, Note, Task, Tag, WeekSummary, QuestionResolution, Screenshot, Acronym } from "@/lib/types/database";
 
 export default async function WeekPage({
   params,
@@ -52,7 +53,7 @@ export default async function WeekPage({
 
   // Fetch tags, task_tags, summary, and week in parallel
   const taskIds = initialTasks.map((t) => t.id);
-  const [tagsRes, taskTagsRes, summaryRes, weekRes, resolutionsRes] = await Promise.all([
+  const [tagsRes, taskTagsRes, summaryRes, weekRes, resolutionsRes, acronymsRes] = await Promise.all([
     supabase.from("tags").select("*").eq("user_id", user.id),
     taskIds.length > 0
       ? supabase.from("task_tags").select("*").in("task_id", taskIds)
@@ -74,8 +75,14 @@ export default async function WeekPage({
       .select("*")
       .eq("user_id", user.id)
       .eq("week_start", weekStart),
+    supabase
+      .from("acronyms")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("acronym"),
   ]);
 
+  const initialAcronyms = (acronymsRes.data ?? []) as Acronym[];
   const initialTags = (tagsRes.data ?? []) as Tag[];
   const taskTagsMap: Record<string, string[]> = {};
   for (const row of taskTagsRes.data ?? []) {
@@ -130,13 +137,15 @@ export default async function WeekPage({
 
   return (
     <SupabaseProvider>
-      <WeekProvider initialData={initialData}>
-        <TasksProvider initialTasks={initialTasks} initialTags={initialTags} initialTaskTags={taskTagsMap}>
-          <Suspense>
-            <WeekClient weekStart={weekStart} weekExists={!!week} />
-          </Suspense>
-        </TasksProvider>
-      </WeekProvider>
+      <AcronymsProvider initialAcronyms={initialAcronyms}>
+        <WeekProvider initialData={initialData}>
+          <TasksProvider initialTasks={initialTasks} initialTags={initialTags} initialTaskTags={taskTagsMap}>
+            <Suspense>
+              <WeekClient weekStart={weekStart} weekExists={!!week} />
+            </Suspense>
+          </TasksProvider>
+        </WeekProvider>
+      </AcronymsProvider>
     </SupabaseProvider>
   );
 }

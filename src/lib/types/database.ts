@@ -263,6 +263,33 @@ export interface Database {
         };
         Relationships: [];
       };
+      acronyms: {
+        Row: {
+          id: string;
+          user_id: string;
+          acronym: string;
+          definition: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          acronym: string;
+          definition: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          acronym?: string;
+          definition?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       screenshots: {
         Row: {
           id: string;
@@ -333,3 +360,4 @@ export type TaskTag = Database["public"]["Tables"]["task_tags"]["Row"];
 export type WeekSummary = Database["public"]["Tables"]["week_summaries"]["Row"];
 export type QuestionResolution = Database["public"]["Tables"]["question_resolutions"]["Row"];
 export type Screenshot = Database["public"]["Tables"]["screenshots"]["Row"];
+export type Acronym = Database["public"]["Tables"]["acronyms"]["Row"];
