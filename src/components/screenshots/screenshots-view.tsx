@@ -47,12 +47,11 @@ export function ScreenshotsView({
       const previewUrl = URL.createObjectURL(file);
       setPendingUploads((prev) => [{ id: pendingId, previewUrl }, ...prev]);
 
-      const compressed = await compressImage(file);
-      const formData = new FormData();
-      formData.append("file", compressed);
-      formData.append("weekId", weekId);
-
       try {
+        const compressed = await compressImage(file).catch(() => file);
+        const formData = new FormData();
+        formData.append("file", compressed);
+        formData.append("weekId", weekId);
         const res = await fetch("/api/screenshots", {
           method: "POST",
           body: formData,
