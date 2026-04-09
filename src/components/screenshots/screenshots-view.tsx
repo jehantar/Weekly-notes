@@ -4,6 +4,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { useWeek } from "@/components/providers/week-provider";
 import { ScreenshotCard } from "./screenshot-card";
 import { UPLOAD_ALLOWED_TYPES, SCREENSHOT_UPLOAD_MAX_SIZE } from "@/lib/constants";
+import { compressImage } from "@/lib/compress-image";
 import { toast } from "sonner";
 import type { Screenshot } from "@/lib/types/database";
 
@@ -46,8 +47,9 @@ export function ScreenshotsView({
       const previewUrl = URL.createObjectURL(file);
       setPendingUploads((prev) => [{ id: pendingId, previewUrl }, ...prev]);
 
+      const compressed = await compressImage(file);
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", compressed);
       formData.append("weekId", weekId);
 
       try {

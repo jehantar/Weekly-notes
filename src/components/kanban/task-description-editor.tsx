@@ -34,8 +34,10 @@ export function TaskDescriptionEditor({ taskId, content, onSave }: TaskDescripti
 
   const uploadImage = useCallback(
     async (file: File): Promise<string | null> => {
+      const { compressImage } = await import("@/lib/compress-image");
+      const compressed = await compressImage(file);
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", compressed);
       formData.append("taskId", taskId);
 
       try {

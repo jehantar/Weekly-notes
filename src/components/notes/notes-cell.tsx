@@ -51,8 +51,10 @@ export function NotesCell({
   const uploadImage = useCallback(
     async (file: File): Promise<string | null> => {
       if (!weekId) return null;
+      const { compressImage } = await import("@/lib/compress-image");
+      const compressed = await compressImage(file);
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", compressed);
       formData.append("weekId", weekId);
       formData.append("dayOfWeek", String(dayOfWeek));
 
