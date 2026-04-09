@@ -2,11 +2,12 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useAcronyms } from "@/components/providers/acronyms-provider";
+import { InlineEdit } from "@/components/shared/inline-edit";
 
 const STORAGE_KEY = "acronyms-panel-expanded";
 
 export function AcronymsPanel() {
-  const { acronyms, addAcronym, deleteAcronym } = useAcronyms();
+  const { acronyms, addAcronym, updateAcronym, deleteAcronym } = useAcronyms();
   const [isExpanded, setIsExpanded] = useState(false);
   const [newAcronym, setNewAcronym] = useState("");
   const [newDefinition, setNewDefinition] = useState("");
@@ -58,6 +59,22 @@ export function AcronymsPanel() {
       e.preventDefault();
       handleSubmit();
     }
+  };
+
+  const handleUpdateAcronym = async (
+    id: string,
+    field: "acronym" | "definition",
+    value: string
+  ) => {
+    const trimmed = value.trim();
+    if (!trimmed) return;
+
+    if (field === "acronym") {
+      await updateAcronym(id, { acronym: trimmed.toUpperCase() });
+      return;
+    }
+
+    await updateAcronym(id, { definition: trimmed });
   };
 
   return (
@@ -151,18 +168,25 @@ export function AcronymsPanel() {
                   onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--bg-hover)")}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                 >
-                  <span
-                    className="text-xs font-semibold shrink-0"
-                    style={{ color: "var(--text-primary)" }}
-                  >
-                    {item.acronym}
-                  </span>
+                  <InlineEdit
+                    value={item.acronym}
+                    onSave={(value) => handleUpdateAcronym(item.id, "acronym", value)}
+                    className="text-xs font-semibold shrink-0 min-w-[48px]"
+                    renderView={(value) => (
+                      <span style={{ color: "var(--text-primary)" }}>{value}</span>
+                    )}
+                  />
                   <span className="text-xs" style={{ color: "var(--text-placeholder)" }}>
                     —
                   </span>
-                  <span className="text-xs flex-1" style={{ color: "var(--text-secondary)" }}>
-                    {item.definition}
-                  </span>
+                  <InlineEdit
+                    value={item.definition}
+                    onSave={(value) => handleUpdateAcronym(item.id, "definition", value)}
+                    className="text-xs flex-1"
+                    renderView={(value) => (
+                      <span style={{ color: "var(--text-secondary)" }}>{value}</span>
+                    )}
+                  />
                   <button
                     onClick={() => deleteAcronym(item.id)}
                     className="opacity-0 group-hover:opacity-100 shrink-0 transition-opacity duration-100"
