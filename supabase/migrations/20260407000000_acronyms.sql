@@ -17,3 +17,6 @@ CREATE POLICY "Users can manage their own acronyms"
   ON acronyms FOR ALL
   USING (user_id = auth.uid())
   WITH CHECK (user_id = auth.uid());
+
+-- Reload PostgREST schema cache so new table is immediately queryable
+NOTIFY pgrst, 'reload schema';

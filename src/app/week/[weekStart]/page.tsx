@@ -94,10 +94,18 @@ export default async function WeekPage({
   const initialResolutions = (resolutionsRes.data ?? []) as QuestionResolution[];
 
   const week = weekRes.data as Week | null;
+
+  // Screenshots are user-scoped (visible on every week), not week-scoped
+  const { data: screenshotsData } = await supabase
+    .from("screenshots")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
   let initialData: WeekData;
 
   if (week) {
-    const [meetingsRes, notesRes, screenshotsRes] = await Promise.all([
+    const [meetingsRes, notesRes] = await Promise.all([
       supabase
         .from("meetings")
         .select("*")
@@ -109,11 +117,6 @@ export default async function WeekPage({
         .select("*")
         .eq("week_id", week.id)
         .order("day_of_week"),
-      supabase
-        .from("screenshots")
-        .select("*")
-        .eq("week_id", week.id)
-        .order("created_at", { ascending: false }),
     ]);
 
     initialData = {
@@ -122,7 +125,7 @@ export default async function WeekPage({
       notes: (notesRes.data ?? []) as Note[],
       summary: (summaryData as WeekSummary) ?? null,
       questionResolutions: initialResolutions,
-      screenshots: (screenshotsRes.data ?? []) as Screenshot[],
+      screenshots: (screenshotsData ?? []) as Screenshot[],
     };
   } else {
     initialData = {
@@ -131,7 +134,7 @@ export default async function WeekPage({
       notes: [],
       summary: (summaryData as WeekSummary) ?? null,
       questionResolutions: initialResolutions,
-      screenshots: [],
+      screenshots: (screenshotsData ?? []) as Screenshot[],
     };
   }
 

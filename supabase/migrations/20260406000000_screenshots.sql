@@ -37,3 +37,6 @@ CREATE POLICY "Users can delete own task images"
   ON storage.objects FOR DELETE
   TO authenticated
   USING (bucket_id = 'task-images' AND (storage.foldername(name))[1] = auth.uid()::text);
+
+-- Reload PostgREST schema cache so new table is immediately queryable
+NOTIFY pgrst, 'reload schema';

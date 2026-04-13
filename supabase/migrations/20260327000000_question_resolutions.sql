@@ -26,3 +26,6 @@ CREATE POLICY "Users can update own resolutions"
 CREATE POLICY "Users can delete own resolutions"
   ON question_resolutions FOR DELETE
   USING (auth.uid() = user_id);
+
+-- Reload PostgREST schema cache so new table is immediately queryable
+NOTIFY pgrst, 'reload schema';
