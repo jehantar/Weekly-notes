@@ -174,6 +174,30 @@ export function KanbanBoard() {
     [tasks, tagFilters, taskTags, priorityFilter, meetingFilter, getTaskMeetingKey]
   );
 
+  const getOrderedColumnTasks = useCallback(
+    (status: TaskStatus) => tasks.filter((t) => t.status === status).sort(taskSortCompare),
+    [tasks]
+  );
+
+  const mergeVisibleOrderIntoFullOrder = useCallback(
+    (fullTasks: Task[], reorderedVisibleTasks: Task[]) => {
+      const reorderedVisibleById = new Map(reorderedVisibleTasks.map((task) => [task.id, task]));
+      const reorderedVisibleIds = reorderedVisibleTasks.map((task) => task.id);
+      let visibleIndex = 0;
+
+      return fullTasks.map((task) => {
+        if (!reorderedVisibleById.has(task.id)) {
+          return task;
+        }
+
+        const nextVisibleTaskId = reorderedVisibleIds[visibleIndex];
+        visibleIndex += 1;
+        return reorderedVisibleById.get(nextVisibleTaskId) ?? task;
+      });
+    },
+    []
+  );
+
   // Keyboard shortcuts (minimal — just Escape to dismiss)
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -241,44 +265,52 @@ export function KanbanBoard() {
       if (!sourceColumn || !destColumn) return;
 
       if (sourceColumn === destColumn) {
-        const columnTasks = [...getColumnTasks(sourceColumn)].sort(
-          (a, b) => a.sort_order - b.sort_order
-        );
-        const oldIndex = columnTasks.findIndex((t) => t.id === activeId);
-        const newIndex = columnTasks.findIndex((t) => t.id === overId);
+        const visibleColumnTasks = [...getColumnTasks(sourceColumn)].sort(taskSortCompare);
+        const oldIndex = visibleColumnTasks.findIndex((t) => t.id === activeId);
+        const newIndex = visibleColumnTasks.findIndex((t) => t.id === overId);
 
         if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return;
 
-        const reordered = [...columnTasks];
-        const [moved] = reordered.splice(oldIndex, 1);
-        reordered.splice(newIndex, 0, moved);
-        reorderTasks(sourceColumn, reordered.map((t) => t.id));
-      } else {
-        const destTasks = [...getColumnTasks(destColumn)].sort(
-          (a, b) => a.sort_order - b.sort_order
+        const reorderedVisibleTasks = [...visibleColumnTasks];
+        const [moved] = reorderedVisibleTasks.splice(oldIndex, 1);
+        reorderedVisibleTasks.splice(newIndex, 0, moved);
+
+        const fullColumnTasks = getOrderedColumnTasks(sourceColumn);
+        const mergedColumnTasks = mergeVisibleOrderIntoFullOrder(
+          fullColumnTasks,
+          reorderedVisibleTasks
         );
 
-        let newIndex = destTasks.length;
-        const overTaskIndex = destTasks.findIndex((t) => t.id === overId);
+        await reorderTasks(sourceColumn, mergedColumnTasks.map((t) => t.id));
+      } else {
+        const fullDestTasks = getOrderedColumnTasks(destColumn);
+        const fullSourceTasks = getOrderedColumnTasks(sourceColumn).filter((t) => t.id !== activeId);
+
+        let newIndex = fullDestTasks.length;
+        const overTaskIndex = fullDestTasks.findIndex((t) => t.id === overId);
         if (overTaskIndex !== -1) {
           newIndex = overTaskIndex;
         }
 
         await moveTask(activeId, destColumn, newIndex);
 
-        const newDestOrder = [...destTasks];
+        const newDestOrder = [...fullDestTasks];
         newDestOrder.splice(newIndex, 0, { id: activeId } as Task);
         await reorderTasks(destColumn, newDestOrder.map((t) => t.id));
 
-        const sourceTasks = getColumnTasks(sourceColumn)
-          .filter((t) => t.id !== activeId)
-          .sort(taskSortCompare);
-        if (sourceTasks.length > 0) {
-          await reorderTasks(sourceColumn, sourceTasks.map((t) => t.id));
+        if (fullSourceTasks.length > 0) {
+          await reorderTasks(sourceColumn, fullSourceTasks.map((t) => t.id));
         }
       }
     },
-    [findColumn, getColumnTasks, moveTask, reorderTasks]
+    [
+      findColumn,
+      getColumnTasks,
+      getOrderedColumnTasks,
+      mergeVisibleOrderIntoFullOrder,
+      moveTask,
+      reorderTasks,
+    ]
   );
 
   const selectedTask = selectedTaskId ? tasks.find((t) => t.id === selectedTaskId) : null;
