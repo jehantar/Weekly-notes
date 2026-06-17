@@ -5,7 +5,14 @@ import { CalendarPicker } from "./calendar-picker";
 import { useTasks } from "@/components/providers/tasks-provider";
 import { useTheme } from "@/components/providers/theme-provider";
 
-export type ViewTab = "notes" | "tasks" | "updates" | "screenshots";
+export type ViewTab = "tasks" | "screenshots" | "notes" | "updates";
+
+const VIEW_TABS: { value: ViewTab; label: string }[] = [
+  { value: "tasks", label: "Board" },
+  { value: "screenshots", label: "Screenshots" },
+  { value: "notes", label: "Notes" },
+  { value: "updates", label: "Updates" },
+];
 
 export function Header({
   weekStart,
@@ -46,18 +53,19 @@ export function Header({
       </div>
       {/* Tab bar */}
       <div className="px-4 flex gap-0 items-center">
-        {(["notes", "tasks", "updates", "screenshots"] as const).map((tab) => (
+        {VIEW_TABS.map((tab) => (
           <button
-            key={tab}
-            onClick={() => onTabChange(tab)}
+            key={tab.value}
+            onClick={() => onTabChange(tab.value)}
             className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wider transition-colors duration-150"
             style={{
-              color: activeTab === tab ? 'var(--accent-purple)' : 'var(--text-secondary)',
-              borderBottom: activeTab === tab ? '2px solid var(--accent-purple)' : '2px solid transparent',
-              fontWeight: activeTab === tab ? 700 : 500,
+              color: activeTab === tab.value ? 'var(--accent-purple)' : 'var(--text-secondary)',
+              borderBottom: activeTab === tab.value ? '2px solid var(--accent-purple)' : '2px solid transparent',
+              fontWeight: activeTab === tab.value ? 700 : 500,
+              opacity: tab.value === "notes" && activeTab !== "notes" ? 0.72 : 1,
             }}
           >
-            {tab}
+            {tab.label}
           </button>
         ))}
         {activeTab === "tasks" && <TaskStats />}

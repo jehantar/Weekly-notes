@@ -12,6 +12,12 @@ import { SearchCommand } from "@/components/layout/search-command";
 import { AcronymsPanel } from "@/components/layout/acronyms-panel";
 import { parseWeekStart, addWeeks as addWeeksUtil, formatWeekStart } from "@/lib/utils/dates";
 
+function parseViewTab(viewParam: string | null): ViewTab {
+  if (viewParam === "screenshots") return "screenshots";
+  if (viewParam === "notes") return "notes";
+  if (viewParam === "updates") return "updates";
+  return "tasks";
+}
 
 export function WeekClient({
   weekStart,
@@ -27,16 +33,13 @@ export function WeekClient({
   const router = useRouter();
   const nextWeekStart = formatWeekStart(addWeeksUtil(monday, 1));
 
-  // Tab state from query param
-  const viewParam = searchParams.get("view") as ViewTab | null;
-  const [activeTab, setActiveTab] = useState<ViewTab>(
-    viewParam === "tasks" ? "tasks" : viewParam === "updates" ? "updates" : viewParam === "screenshots" ? "screenshots" : "notes"
-  );
+  const viewParam = searchParams.get("view");
+  const [activeTab, setActiveTab] = useState<ViewTab>(() => parseViewTab(viewParam));
 
   const handleTabChange = useCallback((tab: ViewTab) => {
     setActiveTab(tab);
     const url = new URL(window.location.href);
-    if (tab === "notes") {
+    if (tab === "tasks") {
       url.searchParams.delete("view");
     } else {
       url.searchParams.set("view", tab);
@@ -45,7 +48,7 @@ export function WeekClient({
   }, []);
 
   const handleNavigateForward = () => {
-    const viewSuffix = activeTab !== "notes" ? `?view=${activeTab}` : "";
+    const viewSuffix = activeTab !== "tasks" ? `?view=${activeTab}` : "";
     router.push(`/week/${nextWeekStart}${viewSuffix}`);
   };
 
@@ -76,7 +79,7 @@ export function WeekClient({
       if (["INPUT", "TEXTAREA"].includes((e.target as HTMLElement).tagName) || (e.target as HTMLElement).isContentEditable) return;
       if (e.key === "ArrowLeft") {
         e.preventDefault();
-        router.push(`/week/${formatWeekStart(addWeeksUtil(monday, -1))}${activeTab !== "notes" ? `?view=${activeTab}` : ""}`);
+        router.push(`/week/${formatWeekStart(addWeeksUtil(monday, -1))}${activeTab !== "tasks" ? `?view=${activeTab}` : ""}`);
       }
       if (e.key === "ArrowRight") {
         e.preventDefault();
@@ -102,14 +105,16 @@ export function WeekClient({
         onTabChange={handleTabChange}
       />
       <main className="flex-1 p-4 overflow-hidden">
-        {activeTab === "notes" ? (
-          <DayCards monday={monday} />
-        ) : activeTab === "tasks" ? (
+        {activeTab === "tasks" ? (
           <KanbanBoard />
+        ) : activeTab === "screenshots" ? (
+          <ScreenshotsView weekStart={weekStart} monday={monday} />
+        ) : activeTab === "notes" ? (
+          <DayCards monday={monday} />
         ) : activeTab === "updates" ? (
           <UpdatesView weekStart={weekStart} monday={monday} />
         ) : (
-          <ScreenshotsView weekStart={weekStart} monday={monday} />
+          <DayCards monday={monday} />
         )}
       </main>
       <AcronymsPanel />
