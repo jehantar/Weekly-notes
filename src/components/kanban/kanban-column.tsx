@@ -43,6 +43,14 @@ export function KanbanColumn({
       <div
         ref={setNodeRef}
         onClick={onToggleCollapse}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onToggleCollapse?.();
+          }
+        }}
         className="flex flex-col items-center cursor-pointer select-none"
         style={{
           width: '36px',
@@ -138,7 +146,7 @@ export function KanbanColumn({
       {/* Cards list */}
       <div
         className="flex-1 overflow-y-auto px-1.5 pb-2 space-y-px"
-        style={{ maxHeight: 'calc(100vh - 160px)' }}
+        style={{ maxHeight: 'calc(100vh - 190px)' }}
       >
         <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
           {sortedTasks.map((task) => (

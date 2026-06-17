@@ -63,6 +63,20 @@ function SubtaskPill({ taskId }: { taskId: string }) {
   );
 }
 
+function DescriptionDot({ task }: { task: Task }) {
+  if (!task.description || task.description.trim().length === 0) return null;
+  return (
+    <span
+      className="inline-flex h-4 w-4 items-center justify-center text-[10px]"
+      style={{ color: "var(--text-placeholder)" }}
+      title="Has description"
+      aria-label="Has description"
+    >
+      ≡
+    </span>
+  );
+}
+
 const animateLayoutChanges: AnimateLayoutChanges = (args) =>
   defaultAnimateLayoutChanges({ ...args, wasDragging: true });
 
@@ -79,7 +93,7 @@ export function KanbanCard({
   onSelectTask?: (taskId: string) => void;
   onToggleSelect?: (taskId: string, shiftKey: boolean) => void;
 }) {
-  const { updateTask, deleteTask } = useTasks();
+  const { updateTask, deleteTask, taskTags, subtasks } = useTasks();
   const [editing, setEditing] = useState(false);
   const [editContent, setEditContent] = useState(task.content);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -98,6 +112,11 @@ export function KanbanCard({
   } = useSortable({ id: task.id, animateLayoutChanges });
 
   const isDone = task.status === "done";
+  const hasMetadata =
+    (taskTags[task.id]?.length ?? 0) > 0 ||
+    (subtasks[task.id]?.length ?? 0) > 0 ||
+    Boolean(task.meeting_title) ||
+    Boolean(task.description?.trim());
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -187,7 +206,7 @@ export function KanbanCard({
     <div
       ref={setNodeRef}
       style={{ ...style, position: "relative" }}
-      className="group flex items-center gap-2 px-3 py-2 cursor-grab active:cursor-grabbing hover:bg-[var(--bg-hover)]"
+      className="group flex min-h-[44px] flex-col justify-center gap-1 px-3 py-2 cursor-grab active:cursor-grabbing hover:bg-[var(--bg-hover)] focus-visible:outline focus-visible:outline-1 focus-visible:outline-[var(--accent-purple)]"
       data-task-id={task.id}
       onClick={(e) => { cancelPreview(); handleCardClick(e); }}
       onMouseEnter={handleMouseEnter}
@@ -201,52 +220,43 @@ export function KanbanCard({
         (listeners as Record<string, Function>)?.onKeyDown?.(e);
       }}
     >
-      {/* Content — takes available space */}
-      <div className="flex-1 min-w-0">
-        {editing ? (
-          <input
-            ref={inputRef}
-            type="text"
-            value={editContent}
-            onChange={(e) => setEditContent(e.target.value)}
-            onKeyDown={handleKeyDown}
-            onBlur={handleSaveEdit}
-            className="w-full text-xs bg-transparent outline-none pb-0.5"
-            style={{
-              color: 'var(--text-primary)',
-              borderBottom: '1px solid var(--accent-purple)',
-            }}
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => e.stopPropagation()}
-          />
-        ) : (
-          <div
-            className="text-xs truncate cursor-text"
-            data-task-text
-            style={{
-              color: isDone ? 'var(--text-placeholder)' : 'var(--text-primary)',
-              textDecoration: isDone ? 'line-through' : 'none',
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              setEditing(true);
-            }}
-            onPointerDown={(e) => e.stopPropagation()}
-          >
-            {task.content}
-          </div>
-        )}
-      </div>
+      <div className="flex items-center gap-2">
+        <div className="flex-1 min-w-0">
+          {editing ? (
+            <input
+              ref={inputRef}
+              type="text"
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onBlur={handleSaveEdit}
+              className="w-full text-xs bg-transparent outline-none pb-0.5"
+              style={{
+                color: 'var(--text-primary)',
+                borderBottom: '1px solid var(--accent-purple)',
+              }}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
+            />
+          ) : (
+            <div
+              className="text-xs truncate cursor-text"
+              data-task-text
+              style={{
+                color: isDone ? 'var(--text-placeholder)' : 'var(--text-primary)',
+                textDecoration: isDone ? 'line-through' : 'none',
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setEditing(true);
+              }}
+              onPointerDown={(e) => e.stopPropagation()}
+            >
+              {task.content}
+            </div>
+          )}
+        </div>
 
-      {/* Right-aligned metadata: subtask pill, meeting tag, priority dot, delete */}
-      <div className="flex items-center gap-1.5 shrink-0">
-        <TagPills taskId={task.id} />
-        <SubtaskPill taskId={task.id} />
-
-        {/* Meeting tag — inline compact */}
-        <MeetingTagInput task={task} />
-
-        {/* Priority dot */}
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -262,7 +272,6 @@ export function KanbanCard({
           />
         </button>
 
-        {/* Delete button (hover reveal) */}
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -277,6 +286,15 @@ export function KanbanCard({
         >
           &times;
         </button>
+      </div>
+
+      <div
+        className={hasMetadata ? "flex min-h-4 items-center gap-1.5 overflow-hidden" : "hidden"}
+      >
+        <TagPills taskId={task.id} />
+        <SubtaskPill taskId={task.id} />
+        <MeetingTagInput task={task} />
+        <DescriptionDot task={task} />
       </div>
 
       {/* Hover preview popover */}
