@@ -93,7 +93,7 @@ export function KanbanCard({
   onSelectTask?: (taskId: string) => void;
   onToggleSelect?: (taskId: string, shiftKey: boolean) => void;
 }) {
-  const { updateTask, deleteTask, taskTags, subtasks } = useTasks();
+  const { updateTask, deleteTask } = useTasks();
   const [editing, setEditing] = useState(false);
   const [editContent, setEditContent] = useState(task.content);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -112,11 +112,6 @@ export function KanbanCard({
   } = useSortable({ id: task.id, animateLayoutChanges });
 
   const isDone = task.status === "done";
-  const hasMetadata =
-    (taskTags[task.id]?.length ?? 0) > 0 ||
-    (subtasks[task.id]?.length ?? 0) > 0 ||
-    Boolean(task.meeting_title) ||
-    Boolean(task.description?.trim());
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -288,9 +283,7 @@ export function KanbanCard({
         </button>
       </div>
 
-      <div
-        className={hasMetadata ? "flex min-h-4 items-center gap-1.5 overflow-hidden" : "hidden"}
-      >
+      <div className="flex min-h-4 items-center gap-1.5 overflow-hidden">
         <TagPills taskId={task.id} />
         <SubtaskPill taskId={task.id} />
         <MeetingTagInput task={task} />

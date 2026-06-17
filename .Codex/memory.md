@@ -6,3 +6,4 @@
 - Week navigation controls in the header must preserve the active `view` query for `screenshots`, `notes`, and `updates`; `tasks`/Board stays queryless.
 - `KanbanBoardToolbar` is now integrated into `src/components/kanban/kanban-board.tsx` with tag, priority, and meeting filters plus Done collapse controls.
 - Whitespace-only quick-add blur should clear the input value before closing so reopening the composer does not show stale spaces.
+- Kanban card metadata rows should stay mounted when they host low-noise actions like meeting linking; hiding the row can remove the board-level meeting affordance on plain tasks.
