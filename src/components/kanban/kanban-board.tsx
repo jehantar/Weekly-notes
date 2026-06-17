@@ -18,8 +18,12 @@ import { KanbanColumn } from "./kanban-column";
 import { useTasks } from "@/components/providers/tasks-provider";
 import { TASK_STATUSES, PRIORITY_DOT_COLORS, safePriority, taskSortCompare } from "@/lib/constants";
 import { TaskDetailPanel } from "./task-detail-panel";
-import { TagFilterBar } from "./tag-filter-bar";
 import { BulkActionsBar } from "./bulk-actions-bar";
+import {
+  KanbanBoardToolbar,
+  type MeetingFilterValue,
+  type PriorityFilter,
+} from "./kanban-board-toolbar";
 import type { Task, TaskStatus } from "@/lib/types/database";
 
 function DragOverlayCard({ task }: { task: Task }) {
@@ -66,7 +70,7 @@ const dropAnimationConfig = {
 };
 
 export function KanbanBoard() {
-  const { tasks, taskTags, moveTask, reorderTasks } = useTasks();
+  const { tasks, tags, taskTags, moveTask, reorderTasks } = useTasks();
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [overColumn, setOverColumn] = useState<string | null>(null);
   const [doneCollapsed, setDoneCollapsed] = useState(true);
@@ -74,6 +78,8 @@ export function KanbanBoard() {
   const [bulkSelectedIds, setBulkSelectedIds] = useState<Set<string>>(new Set());
   const lastClickedRef = useRef<string | null>(null);
   const [tagFilters, setTagFilters] = useState<Set<string>>(new Set());
+  const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>("all");
+  const [meetingFilter, setMeetingFilter] = useState<MeetingFilterValue>("all");
 
   const toggleTagFilter = useCallback((tagId: string) => {
     setTagFilters((prev) => {
@@ -85,6 +91,12 @@ export function KanbanBoard() {
   }, []);
 
   const clearTagFilters = useCallback(() => setTagFilters(new Set()), []);
+
+  const clearAllFilters = useCallback(() => {
+    setTagFilters(new Set());
+    setPriorityFilter("all");
+    setMeetingFilter("all");
+  }, []);
 
   const handleToggleSelect = useCallback(
     (taskId: string, shiftKey: boolean) => {
@@ -137,6 +149,11 @@ export function KanbanBoard() {
     })
   );
 
+  const getTaskMeetingKey = useCallback((task: Task) => {
+    if (!task.meeting_title) return null;
+    return task.meeting_id ?? `${task.meeting_week_start ?? "unknown"}:${task.meeting_title}`;
+  }, []);
+
   const getColumnTasks = useCallback(
     (status: TaskStatus) => {
       let filtered = tasks.filter((t) => t.status === status);
@@ -146,9 +163,15 @@ export function KanbanBoard() {
           return tTags.some((id) => tagFilters.has(id));
         });
       }
+      if (priorityFilter !== "all") {
+        filtered = filtered.filter((t) => String(safePriority(t.priority)) === priorityFilter);
+      }
+      if (meetingFilter !== "all") {
+        filtered = filtered.filter((t) => getTaskMeetingKey(t) === meetingFilter);
+      }
       return filtered;
     },
-    [tasks, tagFilters, taskTags]
+    [tasks, tagFilters, taskTags, priorityFilter, meetingFilter, getTaskMeetingKey]
   );
 
   // Keyboard shortcuts (minimal — just Escape to dismiss)
@@ -259,13 +282,28 @@ export function KanbanBoard() {
   );
 
   const selectedTask = selectedTaskId ? tasks.find((t) => t.id === selectedTaskId) : null;
+  const activeTaskCount = tasks.filter((t) => t.status !== "done").length;
+  const inProgressCount = tasks.filter((t) => t.status === "in_progress").length;
+  const doneCount = tasks.filter((t) => t.status === "done").length;
 
   return (
     <>
-      <TagFilterBar
-        activeFilters={tagFilters}
-        onToggleFilter={toggleTagFilter}
-        onClearFilters={clearTagFilters}
+      <KanbanBoardToolbar
+        tasks={tasks}
+        tags={tags}
+        activeTaskCount={activeTaskCount}
+        inProgressCount={inProgressCount}
+        doneCount={doneCount}
+        tagFilters={tagFilters}
+        priorityFilter={priorityFilter}
+        meetingFilter={meetingFilter}
+        doneCollapsed={doneCollapsed}
+        onToggleTagFilter={toggleTagFilter}
+        onClearTagFilters={clearTagFilters}
+        onPriorityFilterChange={setPriorityFilter}
+        onMeetingFilterChange={setMeetingFilter}
+        onToggleDoneCollapsed={() => setDoneCollapsed((c) => !c)}
+        onClearAllFilters={clearAllFilters}
       />
       <DndContext
         sensors={sensors}

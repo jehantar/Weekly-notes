@@ -75,6 +75,7 @@ export function KanbanBoardToolbar({
   const submitQuickAdd = async () => {
     const trimmed = quickAddValue.trim();
     if (!trimmed) {
+      setQuickAddValue("");
       setQuickAddOpen(false);
       return;
     }
