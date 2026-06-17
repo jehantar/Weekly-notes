@@ -157,7 +157,13 @@ export function TaskDetailPanel({ task, onClose }: TaskDetailPanelProps) {
         </div>
 
         {/* Properties */}
-        <div className="mb-6">
+        <div
+          className="mb-5 overflow-hidden"
+          style={{
+            border: '1px solid var(--border-card)',
+            backgroundColor: 'var(--bg-column)',
+          }}
+        >
           <PropertyDropdown
             label="Status"
             value={task.status}
@@ -181,14 +187,17 @@ export function TaskDetailPanel({ task, onClose }: TaskDetailPanelProps) {
         </div>
 
         {/* Subtasks */}
-        <div className="mb-6">
+        <div className="mb-5">
+          <div className="text-xs font-semibold mb-2" style={{ color: 'var(--text-secondary)' }}>
+            Subtasks
+          </div>
           <SubtaskList taskId={task.id} />
         </div>
 
         {/* Description */}
         <div className="flex-1 mb-6">
           <div className="text-xs font-semibold mb-2" style={{ color: 'var(--text-secondary)' }}>
-            Description
+            Context
           </div>
           <TaskDescriptionEditor
             taskId={task.id}
