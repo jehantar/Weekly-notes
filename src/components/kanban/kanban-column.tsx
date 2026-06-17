@@ -46,6 +46,7 @@ export function KanbanColumn({
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
+          if (e.repeat) return;
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
             onToggleCollapse?.();

@@ -82,8 +82,10 @@ export function MeetingTagInput({ task, alwaysVisible }: { task: Task; alwaysVis
             setOpen(!open);
           }}
           onPointerDown={(e) => e.stopPropagation()}
-          className={`text-[10px] transition-opacity ${alwaysVisible ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+          className={`text-[10px] transition-opacity ${alwaysVisible ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus:opacity-100 focus-visible:opacity-100'}`}
           style={{ color: 'var(--text-placeholder)' }}
+          aria-label="Link meeting"
+          title="Link meeting"
         >
           {alwaysVisible ? '+ Add meeting' : '#'}
         </button>
