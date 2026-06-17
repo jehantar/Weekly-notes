@@ -32,10 +32,15 @@ export function Header({
   return (
     <header style={{ borderBottom: '1px solid var(--border-card)' }}>
       <div className="px-4 py-2 flex items-center gap-4">
-        <WeekNav weekStart={weekStart} monday={monday} onNavigateForward={onNavigateForward} />
+        <WeekNav
+          weekStart={weekStart}
+          monday={monday}
+          activeTab={activeTab}
+          onNavigateForward={onNavigateForward}
+        />
         <div className="flex items-center gap-2 ml-auto">
           <ThemeToggle />
-          <CalendarPicker />
+          <CalendarPicker activeTab={activeTab} />
           <button
             onClick={onSearchOpen}
             className="px-2 py-1 text-sm flex items-center gap-1.5 transition-colors duration-150"

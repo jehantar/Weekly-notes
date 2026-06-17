@@ -4,11 +4,17 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { DayPicker } from "react-day-picker";
 import { getMonday, formatWeekStart } from "@/lib/utils/dates";
+import type { ViewTab } from "./header";
 
-export function CalendarPicker() {
+export function CalendarPicker({
+  activeTab,
+}: {
+  activeTab: ViewTab;
+}) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const ref = useRef<HTMLDivElement>(null);
+  const viewSuffix = activeTab !== "tasks" ? `?view=${activeTab}` : "";
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -26,7 +32,7 @@ export function CalendarPicker() {
   const handleSelect = (day: Date | undefined) => {
     if (!day) return;
     const monday = getMonday(day);
-    router.push(`/week/${formatWeekStart(monday)}`);
+    router.push(`/week/${formatWeekStart(monday)}${viewSuffix}`);
     setOpen(false);
   };
 
