@@ -158,7 +158,7 @@ export function TaskDetailPanel({ task, onClose }: TaskDetailPanelProps) {
 
         {/* Properties */}
         <div
-          className="mb-5 overflow-hidden"
+          className="mb-5"
           style={{
             border: '1px solid var(--border-card)',
             backgroundColor: 'var(--bg-column)',
