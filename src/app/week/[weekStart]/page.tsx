@@ -7,7 +7,7 @@ import { WeekProvider, type WeekData } from "@/components/providers/week-provide
 import { TasksProvider } from "@/components/providers/tasks-provider";
 import { AcronymsProvider } from "@/components/providers/acronyms-provider";
 import { WeekClient } from "./week-client";
-import type { Week, Meeting, Note, Task, Tag, WeekSummary, QuestionResolution, Screenshot, Acronym } from "@/lib/types/database";
+import type { Week, Meeting, Note, MeetingNote, Task, Tag, WeekSummary, QuestionResolution, Screenshot, Acronym } from "@/lib/types/database";
 
 export default async function WeekPage({
   params,
@@ -118,11 +118,21 @@ export default async function WeekPage({
         .eq("week_id", week.id)
         .order("day_of_week"),
     ]);
+    const initialMeetings = (meetingsRes.data ?? []) as Meeting[];
+    const meetingIds = initialMeetings.map((meeting) => meeting.id);
+    const meetingNotesRes = meetingIds.length > 0
+      ? await supabase
+          .from("meeting_notes")
+          .select("*")
+          .in("meeting_id", meetingIds)
+          .order("imported_at", { ascending: false })
+      : { data: [] };
 
     initialData = {
       week,
-      meetings: (meetingsRes.data ?? []) as Meeting[],
+      meetings: initialMeetings,
       notes: (notesRes.data ?? []) as Note[],
+      meetingNotes: (meetingNotesRes.data ?? []) as MeetingNote[],
       summary: (summaryData as WeekSummary) ?? null,
       questionResolutions: initialResolutions,
       screenshots: (screenshotsData ?? []) as Screenshot[],
@@ -132,6 +142,7 @@ export default async function WeekPage({
       week: null,
       meetings: [],
       notes: [],
+      meetingNotes: [],
       summary: (summaryData as WeekSummary) ?? null,
       questionResolutions: initialResolutions,
       screenshots: (screenshotsData ?? []) as Screenshot[],

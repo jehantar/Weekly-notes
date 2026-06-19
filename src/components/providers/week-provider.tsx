@@ -8,7 +8,8 @@ import {
   type ReactNode,
 } from "react";
 import { useSupabase } from "./supabase-provider";
-import type { Week, Meeting, Note, WeekSummary, QuestionResolution, Screenshot } from "@/lib/types/database";
+import type { Week, Meeting, Note, MeetingNote, WeekSummary, QuestionResolution, Screenshot } from "@/lib/types/database";
+import { extractGoogleDocFileId, normalizeMeetingNoteSnapshot } from "@/lib/utils/google-docs";
 import { UNDO_TIMEOUT } from "@/lib/constants";
 import { toast } from "sonner";
 
@@ -16,9 +17,16 @@ export type WeekData = {
   week: Week | null;
   meetings: Meeting[];
   notes: Note[];
+  meetingNotes: MeetingNote[];
   summary: WeekSummary | null;
   questionResolutions: QuestionResolution[];
   screenshots: Screenshot[];
+};
+
+type UpsertMeetingNoteInput = {
+  sourceUrl: string;
+  content: string;
+  sourceTitle?: string | null;
 };
 
 type WeekContextType = WeekData & {
@@ -30,6 +38,8 @@ type WeekContextType = WeekData & {
   refreshMeetings: () => Promise<void>;
   // Notes
   upsertNote: (dayOfWeek: number, content: string) => Promise<void>;
+  upsertMeetingNote: (meetingId: string, input: UpsertMeetingNoteInput) => Promise<MeetingNote | null>;
+  deleteMeetingNote: (meetingId: string) => void;
   // Summary
   upsertSummary: (content: string) => Promise<void>;
   // Week
@@ -59,6 +69,7 @@ export function WeekProvider({
   const [week, setWeek] = useState(initialData.week);
   const [meetings, setMeetings] = useState(initialData.meetings);
   const [notes, setNotes] = useState(initialData.notes);
+  const [meetingNotes, setMeetingNotes] = useState(initialData.meetingNotes);
   const [summary, setSummary] = useState(initialData.summary);
   const [questionResolutions, setQuestionResolutions] = useState(initialData.questionResolutions);
   const [screenshots, setScreenshots] = useState(initialData.screenshots);
@@ -69,6 +80,7 @@ export function WeekProvider({
     setWeek(data.week);
     setMeetings(data.meetings);
     setNotes(data.notes);
+    setMeetingNotes(data.meetingNotes);
     setSummary(data.summary);
     setQuestionResolutions(data.questionResolutions);
     setScreenshots(data.screenshots);
@@ -213,6 +225,108 @@ export function WeekProvider({
       }
     },
     [weekId, notes, supabase]
+  );
+
+  const upsertMeetingNote = useCallback(
+    async (meetingId: string, input: UpsertMeetingNoteInput): Promise<MeetingNote | null> => {
+      const sourceUrl = input.sourceUrl.trim();
+      const content = normalizeMeetingNoteSnapshot(input.content);
+      const sourceFileId = extractGoogleDocFileId(sourceUrl);
+
+      if (!sourceUrl || !sourceFileId) {
+        toast.error("Paste a Google Doc URL");
+        return null;
+      }
+
+      if (!content) {
+        toast.error("Paste the Gemini notes text");
+        return null;
+      }
+
+      const importedAt = new Date().toISOString();
+      const existing = meetingNotes.find((note) => note.meeting_id === meetingId);
+      const optimistic: MeetingNote = {
+        id: existing?.id ?? crypto.randomUUID(),
+        meeting_id: meetingId,
+        source_url: sourceUrl,
+        source_file_id: sourceFileId,
+        source_title: input.sourceTitle?.trim() || null,
+        content,
+        imported_at: importedAt,
+        created_at: existing?.created_at ?? importedAt,
+        updated_at: importedAt,
+      };
+
+      setMeetingNotes((prev) => {
+        if (existing) {
+          return prev.map((note) => (note.id === existing.id ? optimistic : note));
+        }
+        return [...prev, optimistic];
+      });
+
+      const { data, error } = await supabase
+        .from("meeting_notes")
+        .upsert(
+          {
+            meeting_id: meetingId,
+            source_url: sourceUrl,
+            source_file_id: sourceFileId,
+            source_title: optimistic.source_title,
+            content,
+            imported_at: importedAt,
+          },
+          { onConflict: "meeting_id" }
+        )
+        .select()
+        .single();
+
+      if (error || !data) {
+        setMeetingNotes((prev) => {
+          if (existing) {
+            return prev.map((note) => (note.id === existing.id ? existing : note));
+          }
+          return prev.filter((note) => note.id !== optimistic.id);
+        });
+        toast.error("Failed to save meeting notes");
+        return null;
+      }
+
+      setMeetingNotes((prev) =>
+        prev.map((note) => (note.id === optimistic.id || note.meeting_id === meetingId ? data as MeetingNote : note))
+      );
+      toast.success(existing ? "Meeting notes refreshed" : "Meeting notes attached");
+      return data as MeetingNote;
+    },
+    [meetingNotes, supabase]
+  );
+
+  const deleteMeetingNote = useCallback(
+    (meetingId: string) => {
+      const existing = meetingNotes.find((note) => note.meeting_id === meetingId);
+      if (!existing) return;
+
+      setMeetingNotes((prev) => prev.filter((note) => note.id !== existing.id));
+
+      const timeout = setTimeout(async () => {
+        const { error } = await supabase.from("meeting_notes").delete().eq("id", existing.id);
+        if (error) {
+          setMeetingNotes((prev) => [...prev, existing]);
+          toast.error("Failed to remove meeting notes");
+        }
+      }, UNDO_TIMEOUT);
+
+      toast("Meeting notes removed", {
+        action: {
+          label: "Undo",
+          onClick: () => {
+            clearTimeout(timeout);
+            setMeetingNotes((prev) => [...prev, existing]);
+          },
+        },
+        duration: UNDO_TIMEOUT,
+      });
+    },
+    [meetingNotes, supabase]
   );
 
   const upsertSummary = useCallback(
@@ -423,12 +537,15 @@ export function WeekProvider({
         weekId,
         meetings,
         notes,
+        meetingNotes,
         summary,
         addMeeting,
         updateMeeting,
         deleteMeeting,
         refreshMeetings,
         upsertNote,
+        upsertMeetingNote,
+        deleteMeetingNote,
         upsertSummary,
         setWeekData,
         questionResolutions,

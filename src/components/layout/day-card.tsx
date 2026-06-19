@@ -3,7 +3,7 @@
 import { addDays, format } from "date-fns";
 import { isDayToday } from "@/lib/utils/dates";
 import { DAY_LABELS } from "@/lib/constants";
-import { MeetingsCell } from "@/components/meetings/meetings-cell";
+import { MeetingNotesCell } from "@/components/notes/meeting-notes-cell";
 import { NotesCell } from "@/components/notes/notes-cell";
 
 export function DayCard({
@@ -85,18 +85,18 @@ export function DayCard({
         </span>
       </div>
 
-      {/* Meetings Section */}
+      {/* Meeting Notes Section */}
       <div className="px-3 py-2 border-b" style={{ borderColor: 'var(--border-card)' }}>
         <div className="text-[10px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: 'var(--text-placeholder)' }}>
-          Meetings
+          Meeting notes
         </div>
-        <MeetingsCell dayOfWeek={dayOfWeek} />
+        <MeetingNotesCell dayOfWeek={dayOfWeek} />
       </div>
 
-      {/* Notes Section */}
+      {/* Legacy Notes Section */}
       <div className="px-3 py-2 flex-1">
         <div className="text-[10px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: 'var(--text-placeholder)' }}>
-          Notes
+          Freeform notes
         </div>
         <NotesCell
           dayOfWeek={dayOfWeek}

@@ -92,6 +92,42 @@ export interface Database {
         };
         Relationships: [];
       };
+      meeting_notes: {
+        Row: {
+          id: string;
+          meeting_id: string;
+          source_url: string;
+          source_file_id: string | null;
+          source_title: string | null;
+          content: string;
+          imported_at: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          meeting_id: string;
+          source_url: string;
+          source_file_id?: string | null;
+          source_title?: string | null;
+          content?: string;
+          imported_at?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          meeting_id?: string;
+          source_url?: string;
+          source_file_id?: string | null;
+          source_title?: string | null;
+          content?: string;
+          imported_at?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       tasks: {
         Row: {
           id: string;
@@ -353,6 +389,7 @@ export interface Database {
 export type Week = Database["public"]["Tables"]["weeks"]["Row"];
 export type Meeting = Database["public"]["Tables"]["meetings"]["Row"];
 export type Note = Database["public"]["Tables"]["notes"]["Row"];
+export type MeetingNote = Database["public"]["Tables"]["meeting_notes"]["Row"];
 export type Task = Database["public"]["Tables"]["tasks"]["Row"];
 export type Subtask = Database["public"]["Tables"]["subtasks"]["Row"];
 export type Tag = Database["public"]["Tables"]["tags"]["Row"];
