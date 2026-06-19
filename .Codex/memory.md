@@ -7,3 +7,4 @@
 - `KanbanBoardToolbar` is now integrated into `src/components/kanban/kanban-board.tsx` with tag, priority, and meeting filters plus Done collapse controls.
 - Whitespace-only quick-add blur should clear the input value before closing so reopening the composer does not show stale spaces.
 - Kanban card metadata rows should stay mounted when they host low-noise actions like meeting linking; hiding the row can remove the board-level meeting affordance on plain tasks.
+- Kanban Workbench implementation completed on branch `codex/kanban-workbench`: Board default, Screenshots second, Notes de-emphasized, toolbar quick add/filters, filtered drag order preservation, card polish, and task panel actionability. Verification: `npx tsc --noEmit` passed, `npm run build` passed outside sandbox, final branch review approved. Browser reached `/login`, so authenticated board workflows still need a logged-in/manual check.
