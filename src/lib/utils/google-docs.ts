@@ -1,27 +1,34 @@
-const GOOGLE_DOC_ID_PATTERNS = [
-  /docs\.google\.com\/document\/d\/([A-Za-z0-9_-]+)/,
-  /drive\.google\.com\/file\/d\/([A-Za-z0-9_-]+)/,
-  /[?&]id=([A-Za-z0-9_-]+)/,
-];
-
 export function extractGoogleDocFileId(input: string): string | null {
   const value = input.trim();
   if (!value) return null;
 
-  for (const pattern of GOOGLE_DOC_ID_PATTERNS) {
-    const match = value.match(pattern);
-    if (match?.[1]) return match[1];
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "https:") return null;
+
+    if (url.hostname === "docs.google.com") {
+      return url.pathname.match(/^\/document\/d\/([A-Za-z0-9_-]+)/)?.[1] ?? null;
+    }
+
+    if (url.hostname === "drive.google.com") {
+      const pathFileId = url.pathname.match(/^\/file\/d\/([A-Za-z0-9_-]+)/)?.[1];
+      return pathFileId ?? url.searchParams.get("id");
+    }
+  } catch {
+    return null;
   }
 
   return null;
 }
 
-export function normalizeMeetingNoteSnapshot(content: string): string {
-  return content
-    .replace(/\r\n?/g, "\n")
-    .split("\n")
-    .map((line) => line.trimEnd())
-    .join("\n")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
+export function buildGoogleDocAttachment(input: string): {
+  sourceUrl: string;
+  sourceFileId: string;
+} | null {
+  const sourceUrl = input.trim();
+  const sourceFileId = extractGoogleDocFileId(sourceUrl);
+
+  if (!sourceFileId) return null;
+
+  return { sourceUrl, sourceFileId };
 }

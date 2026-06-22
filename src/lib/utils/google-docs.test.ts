@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 // @ts-expect-error Node 25 can run this TypeScript test with an explicit .ts specifier.
-import { extractGoogleDocFileId, normalizeMeetingNoteSnapshot } from "./google-docs.ts";
+import { buildGoogleDocAttachment, extractGoogleDocFileId } from "./google-docs.ts";
 
 test("extractGoogleDocFileId reads standard Google Docs URLs", () => {
   assert.equal(
@@ -22,9 +22,20 @@ test("extractGoogleDocFileId returns null for non-Google Docs input", () => {
   assert.equal(extractGoogleDocFileId(""), null);
 });
 
-test("normalizeMeetingNoteSnapshot trims and collapses pasted note text", () => {
+test("buildGoogleDocAttachment creates an attachment from only a URL", () => {
+  assert.deepEqual(
+    buildGoogleDocAttachment("  https://docs.google.com/document/d/1AbC_def-ghi1234567890/edit  "),
+    {
+      sourceUrl: "https://docs.google.com/document/d/1AbC_def-ghi1234567890/edit",
+      sourceFileId: "1AbC_def-ghi1234567890",
+    }
+  );
+});
+
+test("buildGoogleDocAttachment rejects non-Google Doc URLs", () => {
+  assert.equal(buildGoogleDocAttachment("https://example.com/doc"), null);
   assert.equal(
-    normalizeMeetingNoteSnapshot("  Summary\n\n\n- First item\n\n- Second item  "),
-    "Summary\n\n- First item\n\n- Second item"
+    buildGoogleDocAttachment("https://example.com/open?id=1AbC_def-ghi1234567890"),
+    null
   );
 });

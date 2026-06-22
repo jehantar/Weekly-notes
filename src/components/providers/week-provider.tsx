@@ -9,7 +9,7 @@ import {
 } from "react";
 import { useSupabase } from "./supabase-provider";
 import type { Week, Meeting, Note, MeetingNote, WeekSummary, QuestionResolution, Screenshot } from "@/lib/types/database";
-import { extractGoogleDocFileId, normalizeMeetingNoteSnapshot } from "@/lib/utils/google-docs";
+import { buildGoogleDocAttachment } from "@/lib/utils/google-docs";
 import { UNDO_TIMEOUT } from "@/lib/constants";
 import { toast } from "sonner";
 
@@ -25,7 +25,6 @@ export type WeekData = {
 
 type UpsertMeetingNoteInput = {
   sourceUrl: string;
-  content: string;
   sourceTitle?: string | null;
 };
 
@@ -229,17 +228,10 @@ export function WeekProvider({
 
   const upsertMeetingNote = useCallback(
     async (meetingId: string, input: UpsertMeetingNoteInput): Promise<MeetingNote | null> => {
-      const sourceUrl = input.sourceUrl.trim();
-      const content = normalizeMeetingNoteSnapshot(input.content);
-      const sourceFileId = extractGoogleDocFileId(sourceUrl);
+      const attachment = buildGoogleDocAttachment(input.sourceUrl);
 
-      if (!sourceUrl || !sourceFileId) {
+      if (!attachment) {
         toast.error("Paste a Google Doc URL");
-        return null;
-      }
-
-      if (!content) {
-        toast.error("Paste the Gemini notes text");
         return null;
       }
 
@@ -248,10 +240,10 @@ export function WeekProvider({
       const optimistic: MeetingNote = {
         id: existing?.id ?? crypto.randomUUID(),
         meeting_id: meetingId,
-        source_url: sourceUrl,
-        source_file_id: sourceFileId,
+        source_url: attachment.sourceUrl,
+        source_file_id: attachment.sourceFileId,
         source_title: input.sourceTitle?.trim() || null,
-        content,
+        content: "",
         imported_at: importedAt,
         created_at: existing?.created_at ?? importedAt,
         updated_at: importedAt,
@@ -269,10 +261,10 @@ export function WeekProvider({
         .upsert(
           {
             meeting_id: meetingId,
-            source_url: sourceUrl,
-            source_file_id: sourceFileId,
+            source_url: attachment.sourceUrl,
+            source_file_id: attachment.sourceFileId,
             source_title: optimistic.source_title,
-            content,
+            content: "",
             imported_at: importedAt,
           },
           { onConflict: "meeting_id" }
@@ -294,7 +286,7 @@ export function WeekProvider({
       setMeetingNotes((prev) =>
         prev.map((note) => (note.id === optimistic.id || note.meeting_id === meetingId ? data as MeetingNote : note))
       );
-      toast.success(existing ? "Meeting notes refreshed" : "Meeting notes attached");
+      toast.success(existing ? "Google Doc updated" : "Google Doc attached");
       return data as MeetingNote;
     },
     [meetingNotes, supabase]

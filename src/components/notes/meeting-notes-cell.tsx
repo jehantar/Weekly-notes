@@ -5,7 +5,6 @@ import { format } from "date-fns";
 import { useWeek } from "@/components/providers/week-provider";
 import { useTasks } from "@/components/providers/tasks-provider";
 import { InlineEdit } from "@/components/shared/inline-edit";
-import { MarkdownBlock } from "@/components/shared/markdown-render";
 import type { Meeting, MeetingNote } from "@/lib/types/database";
 import { toast } from "sonner";
 
@@ -18,14 +17,12 @@ type MeetingNoteEditorProps = {
 function MeetingNoteEditor({ meeting, note, onClose }: MeetingNoteEditorProps) {
   const { upsertMeetingNote } = useWeek();
   const [sourceUrl, setSourceUrl] = useState(note?.source_url ?? "");
-  const [content, setContent] = useState(note?.content ?? "");
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
     setSaving(true);
     const saved = await upsertMeetingNote(meeting.id, {
       sourceUrl,
-      content,
       sourceTitle: meeting.title ? `${meeting.title} notes` : null,
     });
     setSaving(false);
@@ -43,20 +40,9 @@ function MeetingNoteEditor({ meeting, note, onClose }: MeetingNoteEditorProps) {
       <input
         value={sourceUrl}
         onChange={(event) => setSourceUrl(event.target.value)}
+        aria-label="Google Doc URL"
         placeholder="Google Doc URL"
         className="w-full rounded-[4px] border px-2 py-1 text-[11px] outline-none"
-        style={{
-          borderColor: "var(--border-card)",
-          backgroundColor: "var(--bg-card)",
-          color: "var(--text-primary)",
-        }}
-      />
-      <textarea
-        value={content}
-        onChange={(event) => setContent(event.target.value)}
-        placeholder="Paste Gemini notes here..."
-        rows={7}
-        className="w-full resize-y rounded-[4px] border px-2 py-1 text-[11px] leading-4 outline-none"
         style={{
           borderColor: "var(--border-card)",
           backgroundColor: "var(--bg-card)",
@@ -82,7 +68,7 @@ function MeetingNoteEditor({ meeting, note, onClose }: MeetingNoteEditorProps) {
             color: "#fff",
           }}
         >
-          {saving ? "Saving..." : note ? "Refresh notes" : "Attach notes"}
+          {saving ? "Saving..." : note ? "Save link" : "Attach document"}
         </button>
       </div>
     </div>
@@ -102,10 +88,9 @@ function MeetingNoteCard({ meeting, note, autoEdit, onAddNext, onBackspace }: Me
   const { addTask, linkMeeting } = useTasks();
   const [editingNote, setEditingNote] = useState(false);
 
-  const importedLabel = useMemo(() => {
-    if (!note?.imported_at) return null;
-    return format(new Date(note.imported_at), "MMM d, h:mm a");
-  }, [note?.imported_at]);
+  const attachedLabel = note?.imported_at
+    ? format(new Date(note.imported_at), "MMM d, h:mm a")
+    : null;
 
   const handleSaveTitle = (title: string) => {
     if (!title.trim()) {
@@ -151,11 +136,6 @@ function MeetingNoteCard({ meeting, note, autoEdit, onAddNext, onBackspace }: Me
               </span>
             )}
           />
-          {importedLabel && (
-            <div className="mt-0.5 text-[10px]" style={{ color: "var(--text-placeholder)" }}>
-              Imported {importedLabel}
-            </div>
-          )}
         </div>
         <div className="flex shrink-0 items-center gap-1">
           {note && (
@@ -164,9 +144,9 @@ function MeetingNoteCard({ meeting, note, autoEdit, onAddNext, onBackspace }: Me
               onClick={() => setEditingNote((value) => !value)}
               className="text-[11px]"
               style={{ color: "var(--text-secondary)" }}
-              aria-label="Refresh Gemini notes"
+              aria-label="Edit Google Doc link"
             >
-              Refresh
+              Edit link
             </button>
           )}
           <button
@@ -191,32 +171,33 @@ function MeetingNoteCard({ meeting, note, autoEdit, onAddNext, onBackspace }: Me
       </div>
 
       {note && !editingNote && (
-        <div className="mt-2 space-y-2">
-          <div
-            className="max-h-56 overflow-y-auto rounded-[4px] border px-2 py-1.5 text-[11px] leading-4"
-            style={{
-              borderColor: "var(--border-card)",
-              backgroundColor: "var(--bg-column)",
-              color: "var(--text-secondary)",
-            }}
-          >
-            <MarkdownBlock content={note.content} />
-          </div>
-          <div className="flex items-center justify-between gap-2 text-[10px]">
+        <div
+          className="mt-2 flex items-center justify-between gap-2 border-t pt-2"
+          style={{ borderColor: "var(--border-card)" }}
+        >
+          <div className="min-w-0">
             <a
               href={note.source_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="truncate underline"
+              className="block truncate text-[11px] font-medium underline"
               style={{ color: "var(--accent-link)" }}
             >
               Open Google Doc
             </a>
+            {attachedLabel && (
+              <div className="mt-0.5 text-[10px]" style={{ color: "var(--text-placeholder)" }}>
+                Attached {attachedLabel}
+              </div>
+            )}
+          </div>
+          <div
+            className="flex shrink-0 items-center gap-2 text-[10px]"
+            style={{ color: "var(--text-placeholder)" }}
+          >
             <button
               type="button"
               onClick={() => deleteMeetingNote(meeting.id)}
-              className="shrink-0"
-              style={{ color: "var(--text-placeholder)" }}
             >
               Remove
             </button>
@@ -234,7 +215,7 @@ function MeetingNoteCard({ meeting, note, autoEdit, onAddNext, onBackspace }: Me
             color: "var(--text-placeholder)",
           }}
         >
-          Attach Gemini notes
+          Attach Google Doc
         </button>
       )}
 
