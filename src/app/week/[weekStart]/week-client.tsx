@@ -2,22 +2,15 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Header, type ViewTab } from "@/components/layout/header";
+import { Header } from "@/components/layout/header";
 import { DayCards } from "@/components/layout/day-cards";
 import { KanbanBoard } from "@/components/kanban/kanban-board";
-import { UpdatesView } from "@/components/updates/updates-view";
 import { ScreenshotsView } from "@/components/screenshots/screenshots-view";
 import { CreateWeekModal } from "@/components/modals/create-week-modal";
 import { SearchCommand } from "@/components/layout/search-command";
 import { AcronymsPanel } from "@/components/layout/acronyms-panel";
 import { parseWeekStart, addWeeks as addWeeksUtil, formatWeekStart } from "@/lib/utils/dates";
-
-function parseViewTab(viewParam: string | null): ViewTab {
-  if (viewParam === "screenshots") return "screenshots";
-  if (viewParam === "notes") return "notes";
-  if (viewParam === "updates") return "updates";
-  return "tasks";
-}
+import { parseViewTab, type ViewTab } from "@/lib/views";
 
 export function WeekClient({
   weekStart,
@@ -109,10 +102,6 @@ export function WeekClient({
           <KanbanBoard />
         ) : activeTab === "screenshots" ? (
           <ScreenshotsView weekStart={weekStart} monday={monday} />
-        ) : activeTab === "notes" ? (
-          <DayCards monday={monday} />
-        ) : activeTab === "updates" ? (
-          <UpdatesView weekStart={weekStart} monday={monday} />
         ) : (
           <DayCards monday={monday} />
         )}

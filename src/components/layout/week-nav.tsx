@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { getWeekLabel, addWeeks, formatWeekStart, getCurrentWeekStart } from "@/lib/utils/dates";
-import type { ViewTab } from "./header";
+import type { ViewTab } from "@/lib/views";
 
 export function WeekNav({
   weekStart,

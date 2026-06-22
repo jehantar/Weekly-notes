@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { DayPicker } from "react-day-picker";
 import { getMonday, formatWeekStart } from "@/lib/utils/dates";
-import type { ViewTab } from "./header";
+import type { ViewTab } from "@/lib/views";
 
 export function CalendarPicker({
   activeTab,

@@ -4,15 +4,7 @@ import { WeekNav } from "./week-nav";
 import { CalendarPicker } from "./calendar-picker";
 import { useTasks } from "@/components/providers/tasks-provider";
 import { useTheme } from "@/components/providers/theme-provider";
-
-export type ViewTab = "tasks" | "screenshots" | "notes" | "updates";
-
-const VIEW_TABS: { value: ViewTab; label: string }[] = [
-  { value: "tasks", label: "Board" },
-  { value: "screenshots", label: "Screenshots" },
-  { value: "notes", label: "Notes" },
-  { value: "updates", label: "Updates" },
-];
+import { VIEW_TABS, type ViewTab } from "@/lib/views";
 
 export function Header({
   weekStart,
@@ -67,7 +59,6 @@ export function Header({
               color: activeTab === tab.value ? 'var(--accent-purple)' : 'var(--text-secondary)',
               borderBottom: activeTab === tab.value ? '2px solid var(--accent-purple)' : '2px solid transparent',
               fontWeight: activeTab === tab.value ? 700 : 500,
-              opacity: tab.value === "notes" && activeTab !== "notes" ? 0.72 : 1,
             }}
           >
             {tab.label}
