@@ -200,6 +200,7 @@ export function TaskDetailPanel({ task, onClose }: TaskDetailPanelProps) {
             Context
           </div>
           <TaskDescriptionEditor
+            key={task.id}
             taskId={task.id}
             content={task.description ?? ""}
             onSave={handleDescriptionSave}

@@ -21,7 +21,7 @@ export function CreateWeekModal({
   onClose: () => void;
 }) {
   const supabase = useSupabase();
-  const { setWeekData } = useWeek();
+  const { setWeekData, screenshots } = useWeek();
   const monday = parseWeekStart(weekStart);
 
   const [templateMeetings, setTemplateMeetings] = useState<TemplateMeeting[]>(
@@ -138,7 +138,7 @@ export function CreateWeekModal({
       meetingNotes: [],
       summary: null,
       questionResolutions: [],
-      screenshots: [],
+      screenshots,
     });
 
     setCreating(false);
